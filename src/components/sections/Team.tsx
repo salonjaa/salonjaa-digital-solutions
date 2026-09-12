@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { team } from "@/content/team";
 import { site } from "@/content/site";
+import { contact } from "@/content/contact";
+import { withWhatsappMessage } from "@/lib/whatsapp";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { SectionReveal, SectionRevealItem } from "@/components/ui/SectionReveal";
@@ -59,7 +61,11 @@ export function Team() {
                   <IconLink href={`mailto:${member.email}`} label={`Email ${member.name}`}>
                     <MailIcon />
                   </IconLink>
-                  <IconLink href={member.whatsapp} label={`WhatsApp ${member.name}`} external>
+                  <IconLink
+                    href={withWhatsappMessage(member.whatsapp, contact.whatsappMessage)}
+                    label={`WhatsApp ${member.name}`}
+                    external
+                  >
                     <WhatsappIcon />
                   </IconLink>
                   {"github" in member && (

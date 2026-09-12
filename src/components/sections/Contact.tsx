@@ -1,5 +1,6 @@
 import { contact } from "@/content/contact";
 import { site, team } from "@/content/site";
+import { withWhatsappMessage } from "@/lib/whatsapp";
 import { ContactForm } from "@/components/forms/ContactForm";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
@@ -12,7 +13,7 @@ function ContactCard({ member }: { member: (typeof team)["kumar"] | (typeof team
       <h3 className="font-display text-base font-semibold text-white">{member.name}</h3>
       <p className="text-xs text-cyan">{member.role}</p>
       <div className="mt-4 flex flex-wrap gap-2">
-        <Button href={member.whatsapp} variant="whatsapp" size="md">
+        <Button href={withWhatsappMessage(member.whatsapp, contact.whatsappMessage)} variant="whatsapp" size="md">
           WhatsApp
         </Button>
         <Button href={member.phoneHref} variant="outline" size="md">

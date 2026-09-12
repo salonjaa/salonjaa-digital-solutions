@@ -1,6 +1,8 @@
 import { BrandMark } from "./BrandMark";
 import { navLinks } from "@/content/nav";
 import { site, team } from "@/content/site";
+import { contact } from "@/content/contact";
+import { withWhatsappMessage } from "@/lib/whatsapp";
 import { GithubIcon, LinkedinIcon, WhatsappIcon } from "@/components/icons/SocialIcons";
 
 // "Careers", "Blog", "Privacy Policy", and "Terms of Use" are placeholder
@@ -46,7 +48,7 @@ export function Footer() {
               <LinkedinIcon />
             </a>
             <a
-              href={team.kumar.whatsapp}
+              href={withWhatsappMessage(team.kumar.whatsapp, contact.whatsappMessage)}
               target="_blank"
               rel="noopener noreferrer"
               data-cursor-hover
