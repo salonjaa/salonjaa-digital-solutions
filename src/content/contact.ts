@@ -5,5 +5,5 @@ export const contact = {
   projectTypes: ["Website", "E-commerce / Booking Platform", "Web or Mobile App", "SEO & Marketing", "Something else"],
   // Pre-filled into WhatsApp's chat box (as an editable draft) whenever a
   // visitor taps a WhatsApp link — see src/lib/whatsapp.ts.
-  whatsappMessage: "Hi! I found your website and I'd like to talk about a project.",
+  whatsappMessage: "Hi Salonjaa Digital Solutions, I'd like to discuss a project.",
 };
