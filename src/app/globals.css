@@ -1,0 +1,251 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------- */
+/* Salonjaa Digital Solutions — design tokens ("Signal" dark theme)       */
+/* See docs/DESIGN-SYSTEM.md for the full rationale behind these values.  */
+/* ---------------------------------------------------------------------- */
+:root {
+  /* Surfaces */
+  --bg-void: #07080b;
+  --bg-charcoal: #0d0f14;
+  --bg-surface: #12141b;
+  --bg-surface-raised: #171a22;
+
+  /* Accent gradient: electric cyan -> violet */
+  --accent-cyan: #22d3ee;
+  --accent-violet: #8b5cf6;
+  --accent-emerald: #2dd4bf;
+  --gradient-accent: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-violet) 100%);
+
+  /* Text */
+  --text-primary: #f5f7fb;
+  --text-secondary: rgba(245, 247, 251, 0.72);
+  --text-muted: rgba(245, 247, 251, 0.5);
+
+  /* Borders */
+  --border-subtle: rgba(245, 247, 251, 0.1);
+  --border-strong: rgba(245, 247, 251, 0.18);
+
+  --radius-sm: 8px;
+  --radius: 16px;
+  --radius-lg: 24px;
+  --container: 1200px;
+
+  /* Ambient glow washes used behind the hero and other dark panels */
+  --gradient-hero-glow:
+    radial-gradient(circle at 20% 15%, rgba(139, 92, 246, 0.22), transparent 55%),
+    radial-gradient(circle at 82% 12%, rgba(34, 211, 238, 0.16), transparent 50%),
+    radial-gradient(circle at 50% 100%, rgba(45, 212, 191, 0.12), transparent 60%);
+
+  /* Cursor position vars, updated by CustomCursor via gsap.quickTo */
+  --cursor-x: 50vw;
+  --cursor-y: 50vh;
+}
+
+@theme inline {
+  --color-void: var(--bg-void);
+  --color-charcoal: var(--bg-charcoal);
+  --color-surface: var(--bg-surface);
+  --color-surface-raised: var(--bg-surface-raised);
+
+  --color-cyan: var(--accent-cyan);
+  --color-violet: var(--accent-violet);
+  --color-emerald: var(--accent-emerald);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius-lg);
+
+  --font-display: var(--font-space-grotesk), "Space Grotesk", sans-serif;
+  --font-body: var(--font-inter), "Inter", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg-void);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+}
+
+@layer base {
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+/* Anchor targets sit under the sticky nav */
+main section[id],
+#top {
+  scroll-margin-top: 96px;
+}
+
+/* ------------------------- Shared layout helpers ------------------------ */
+@layer components {
+  .container-app {
+    max-width: var(--container);
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+  }
+
+  .text-gradient-accent {
+    background-image: var(--gradient-accent);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .bg-gradient-accent {
+    background-image: var(--gradient-accent);
+  }
+
+  .bg-hero-glow {
+    background-image: var(--gradient-hero-glow);
+  }
+}
+
+/* --------------------------- Gradient borders --------------------------- */
+/* A 1px (or 1.5px, via `.gradient-border-btn`) gradient ring drawn with the
+   mask/exclude trick, so the surface behind it can stay a plain solid color
+   instead of needing a second wrapper element. Declared with `@utility` (not
+   a plain `@layer components` class) specifically so it can itself be
+   composed into other classes with `@apply` below — Tailwind v4 only allows
+   `@apply`-ing real utilities. Used by cards, pill buttons, chips, and forms. */
+@utility gradient-border {
+  position: relative;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    padding: var(--gb-width, 1px);
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.7), rgba(139, 92, 246, 0.7));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  &:hover::before {
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+  }
+}
+
+@utility gradient-border-btn {
+  --gb-width: 1.5px;
+}
+
+@layer components {
+  /* Card surface: dark, slightly lighter than the page, gradient hairline
+     border, lifts + brightens its border on hover. */
+  .card-glass {
+    @apply gradient-border rounded-2xl bg-surface transition-all duration-300;
+    box-shadow: 0 20px 45px -30px rgba(0, 0, 0, 0.7);
+  }
+
+  .card-glass-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 28px 60px -24px rgba(34, 211, 238, 0.18);
+  }
+
+  .chip {
+    @apply gradient-border rounded-full bg-surface/80 backdrop-blur-sm;
+  }
+
+  .glass-nav {
+    @apply border-b border-white/[0.06] bg-void/70 backdrop-blur-xl transition-colors duration-300;
+  }
+
+  .glass-nav[data-scrolled="true"] {
+    @apply bg-void/90 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.6)];
+  }
+}
+
+/* ------------------------------- Marquee --------------------------------- */
+@layer components {
+  .marquee-row {
+    display: flex;
+    width: max-content;
+    animation: marquee-scroll 32s linear infinite;
+  }
+
+  .marquee-row-reverse {
+    animation-direction: reverse;
+  }
+
+  .marquee-viewport:hover .marquee-row {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* --------------------------- Ambient hero blobs -------------------------- */
+@keyframes drift-a {
+  0%, 100% { transform: translate(-8%, -6%) scale(1); }
+  50% { transform: translate(6%, 4%) scale(1.15); }
+}
+
+@keyframes drift-b {
+  0%, 100% { transform: translate(6%, 6%) scale(1.05); }
+  50% { transform: translate(-8%, -4%) scale(0.95); }
+}
+
+@layer components {
+  .hero-blob-a {
+    animation: drift-a 18s ease-in-out infinite;
+  }
+  .hero-blob-b {
+    animation: drift-b 22s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .marquee-row {
+    animation: none;
+  }
+  .hero-blob-a,
+  .hero-blob-b {
+    animation: none;
+  }
+}
+
+/* Native cursor stays on for touch/coarse-pointer devices */
+@media (pointer: coarse) {
+  html { cursor: auto !important; }
+}
+
+::selection {
+  background: var(--accent-violet);
+  color: white;
+}

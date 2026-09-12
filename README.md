@@ -1,49 +1,64 @@
-# Digital Nexus Solutions — website
+# Salonjaa Digital Solutions
 
-Static site, ready to deploy on Netlify as-is (no build step required).
+The marketing website for Salonjaa Digital Solutions — a two-person
+freelance web, app, and digital-marketing studio in Bhubaneswar. Built with
+Next.js, Tailwind CSS, Framer Motion, and GSAP/Lenis.
 
-## Structure
+## Prerequisites
 
+- Node.js 20+ and npm.
+- A [Resend](https://resend.com) account for sending form-submission emails.
+
+## Setup
+
+```bash
+npm install
+cp .env.local.example .env.local
 ```
-index.html                 All markup (single page, section by section)
-css/style.css               All styles
-js/script.js                 Mobile nav, smooth scroll, callback time-chips,
-                              Netlify Forms AJAX submit, back-to-top button
-assets/img/                  Team photos + favicon.svg
-assets/files/                Resume PDF
+
+Fill in `.env.local`:
+
+| Variable | Description |
+|---|---|
+| `RESEND_API_KEY` | API key from your Resend account. |
+| `CONTACT_FROM_EMAIL` | The sender address for form emails. Must be on a domain you've verified in Resend — until then, Resend only allows `onboarding@resend.dev` as the sender and only delivers to the account's own verified email. |
+| `CONTACT_TO_KUMAR` / `CONTACT_TO_SAROJ` | Destination inboxes for contact form submissions. |
+
+## Development
+
+```bash
+npm run dev       # start the dev server at http://localhost:3000
+npm run build     # production build
+npm run start     # run the production build locally
+npm run lint      # ESLint
 ```
 
-## Deploying to Netlify
+## Deployment (Vercel)
 
-Drag-and-drop this whole folder onto app.netlify.com, or connect the repo
-and set:
-- Build command: *(none)*
-- Publish directory: `.`
+1. Import the repo into Vercel.
+2. Add the four env vars above under Project Settings → Environment
+   Variables.
+3. In Resend, verify a sending domain and use an address on it as
+   `CONTACT_FROM_EMAIL` — without this, form emails will fail in production
+   (Resend restricts unverified senders to test recipients only).
+4. Deploy. No special build settings are needed — Vercel auto-detects
+   Next.js.
 
-That's it — Netlify Forms detects the `contact` and `callback` forms in
-`index.html` automatically at deploy time (that's what `data-netlify="true"`
-does). Submissions show up under **Site settings → Forms** in your Netlify
-dashboard, and you can turn on email notifications there so they land in
-your inbox too.
+## Updating content
 
-## Things to update
+All homepage copy lives in `src/content/*.ts` as typed data — no need to
+touch component code to update text:
 
-- **Testimonials** (`index.html`, `id="testimonials"` section): the three
-  quotes are clearly-marked placeholders — swap the name, role, and quote
-  text for each `.testi-card` once you have real ones. Structure/classes
-  can stay as-is.
-- **Resume**: `assets/files/Kumar-Prasannajit-Sahu-Resume.pdf` — replace
-  this file (same name) whenever your resume updates, no HTML changes
-  needed.
-- **Team photos**: `assets/img/kumar-prasannajit-sahu.jpg` and
-  `assets/img/saroj-kumar-sahu.jpg` — already resized/compressed for web
-  (under 45KB each). Replace with same filenames to swap photos.
+- **Team info, contact details, address** → `src/content/site.ts`
+- **Plans/pricing tiers** → `src/content/plans.ts`
+- **Services** → `src/content/services.ts`
+- **Portfolio/work items** → `src/content/work.ts`
+- **Testimonials** → `src/content/testimonials.ts` (currently placeholder —
+  see `docs/CONTENT.md`)
+- **Team photos** → replace the files in `public/images/team/`, same
+  filenames, then update paths in `src/content/site.ts` if you rename them.
+- **Resume PDF** → `public/files/`
 
-## Notes
-
-- No `og:image` is set yet (a proper 1200×630 social share banner is worth
-  adding later — currently link previews on WhatsApp/social will show text
-  only, no image).
-- The old single-file version (`digital-nexus-solutions final digital
-  nexus.html`) is left in the project root untouched — safe to delete once
-  you've confirmed the new site looks right.
+See `CLAUDE.md` for the fuller project map, conventions, and known
+follow-ups; `docs/DESIGN-SYSTEM.md` for the color/typography/animation
+system; `docs/CONTENT.md` for how the old site's copy maps onto this one.
