@@ -42,4 +42,11 @@ export const team = {
     whatsapp: "https://wa.me/919040869749",
     photo: "/images/team/saroj-kumar-sahu.jpg",
   },
+  snehanjali: {
+    name: "Snehanjali Sahu",
+    role: "Coordinator",
+    phone: "+91 81170 16550",
+    phoneHref: "tel:+918117016550",
+    email: "snehanjalisahu515@gmail.com",
+  },
 } as const;

@@ -110,6 +110,11 @@ export function Footer() {
                 {team.saroj.phone}
               </a>
             </li>
+            <li>
+              <a href={team.snehanjali.phoneHref} className="hover:text-white">
+                {team.snehanjali.phone} ({team.snehanjali.role})
+              </a>
+            </li>
             <li className="pt-1 text-text-muted">{site.address.full}</li>
           </ul>
         </div>

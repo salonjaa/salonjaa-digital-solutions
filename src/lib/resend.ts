@@ -14,7 +14,7 @@ function getClient() {
 }
 
 function destinationAddresses() {
-  return [process.env.CONTACT_TO_KUMAR, process.env.CONTACT_TO_SAROJ].filter(
+  return [process.env.CONTACT_TO_SAROJ, process.env.CONTACT_TO_SNEHANJALI].filter(
     (v): v is string => Boolean(v)
   );
 }
@@ -28,7 +28,7 @@ export async function sendContactEmail(data: ContactPayload) {
   const to = destinationAddresses();
   if (to.length === 0) {
     throw new Error(
-      "No contact recipients configured (CONTACT_TO_KUMAR / CONTACT_TO_SAROJ are both unset)"
+      "No contact recipients configured (CONTACT_TO_SAROJ / CONTACT_TO_SNEHANJALI are both unset)"
     );
   }
 

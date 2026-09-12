@@ -7,19 +7,36 @@ import { Button } from "@/components/ui/Button";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { SectionReveal, SectionRevealItem } from "@/components/ui/SectionReveal";
 
-function ContactCard({ member }: { member: (typeof team)["kumar"] | (typeof team)["saroj"] }) {
+type TeamMember = (typeof team)["kumar"] | (typeof team)["saroj"] | (typeof team)["snehanjali"];
+
+function ContactCard({ member, highlightPhone }: { member: TeamMember; highlightPhone?: boolean }) {
   return (
     <GlassCard className="min-w-0">
       <h3 className="font-display text-base font-semibold text-white">{member.name}</h3>
       <p className="text-xs text-cyan">{member.role}</p>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Button href={withWhatsappMessage(member.whatsapp, contact.whatsappMessage)} variant="whatsapp" size="md">
-          WhatsApp
-        </Button>
-        <Button href={member.phoneHref} variant="outline" size="md">
-          Call
-        </Button>
-      </div>
+      {highlightPhone ? (
+        // No WhatsApp on file for this member — the phone number itself is
+        // the CTA here, made large and tap-to-call rather than tucked into
+        // a small button, so a visitor can reach the coordinator directly.
+        <a
+          href={member.phoneHref}
+          data-cursor-hover
+          className="text-gradient-accent mt-4 block font-display text-xl font-bold tracking-wide"
+        >
+          {member.phone}
+        </a>
+      ) : (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {"whatsapp" in member && (
+            <Button href={withWhatsappMessage(member.whatsapp, contact.whatsappMessage)} variant="whatsapp" size="md">
+              WhatsApp
+            </Button>
+          )}
+          <Button href={member.phoneHref} variant="outline" size="md">
+            Call
+          </Button>
+        </div>
+      )}
     </GlassCard>
   );
 }
@@ -39,6 +56,9 @@ export function Contact() {
             </SectionRevealItem>
             <SectionRevealItem>
               <ContactCard member={team.saroj} />
+            </SectionRevealItem>
+            <SectionRevealItem>
+              <ContactCard member={team.snehanjali} highlightPhone />
             </SectionRevealItem>
             <SectionRevealItem className="sm:col-span-2">
               <GlassCard variant="deep" className="min-w-0">

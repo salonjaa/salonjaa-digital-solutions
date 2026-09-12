@@ -122,7 +122,7 @@ npm run dev
 
 Required env vars (see `.env.local.example`): `RESEND_API_KEY`,
 `CONTACT_FROM_EMAIL` (must be on a domain verified in Resend for production
-delivery), `CONTACT_TO_KUMAR`, `CONTACT_TO_SAROJ`.
+delivery), `CONTACT_TO_SAROJ`, `CONTACT_TO_SNEHANJALI`.
 
 `npm run build`, `npm run start`, and `npm run lint` all work as usual.
 
