@@ -24,6 +24,16 @@ function fromAddress() {
   return process.env.CONTACT_FROM_EMAIL ?? "Salonjaa Digital Solutions <onboarding@resend.dev>";
 }
 
+const inrFormatter = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  maximumFractionDigits: 0,
+});
+
+function formatPaise(amountPaise: number) {
+  return inrFormatter.format(amountPaise / 100);
+}
+
 export async function sendContactEmail(data: ContactPayload) {
   const to = destinationAddresses();
   if (to.length === 0) {
@@ -72,17 +82,36 @@ export async function sendPaymentRequestEmail(params: {
   amountPaise: number;
   loginUrl: string;
 }) {
-  const amount = new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(params.amountPaise / 100);
+  const amount = formatPaise(params.amountPaise);
 
   const { data: result, error } = await getClient().emails.send({
     from: fromAddress(),
     to: params.to,
     subject: `Payment request from Salonjaa Digital Solutions — ${amount}`,
     text: `Hi ${params.clientName},\n\nA payment request for ${amount} (${params.description}) is ready on your account.\n\nLog in to pay: ${params.loginUrl}\n\n— Salonjaa Digital Solutions`,
+  });
+
+  if (error) {
+    throw new Error(`Resend API error: ${error.name} — ${error.message}`);
+  }
+
+  return result;
+}
+
+export async function sendPaymentConfirmationEmail(params: {
+  to: string;
+  clientName: string;
+  description: string;
+  amountPaise: number;
+  loginUrl: string;
+}) {
+  const amount = formatPaise(params.amountPaise);
+
+  const { data: result, error } = await getClient().emails.send({
+    from: fromAddress(),
+    to: params.to,
+    subject: `Payment received — thank you! (${amount})`,
+    text: `Hi ${params.clientName},\n\nThank you — we've received your payment of ${amount} for "${params.description}".\n\nYou can view this on your account anytime: ${params.loginUrl}\n\n— Salonjaa Digital Solutions`,
   });
 
   if (error) {

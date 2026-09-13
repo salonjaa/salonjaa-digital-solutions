@@ -2,6 +2,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import type { TablesUpdate } from "@/lib/supabase/types";
+import { sendPaymentConfirmationEmail } from "@/lib/resend";
+import { site } from "@/content/site";
 
 // Only these three event types actually change an order's status — and
 // payment_events.event_type has a CHECK constraint limited to exactly
@@ -93,7 +95,7 @@ export async function POST(req: NextRequest) {
 
     const { data: order } = await admin
       .from("orders")
-      .select("id, status")
+      .select("id, status, client_id, description, amount_paise")
       .eq("razorpay_order_id", razorpayOrderId)
       .maybeSingle();
 
@@ -108,7 +110,33 @@ export async function POST(req: NextRequest) {
         update.paid_at = new Date().toISOString();
         if (razorpayPaymentId) update.razorpay_payment_id = razorpayPaymentId;
       }
-      await admin.from("orders").update(update).eq("id", order.id).neq("status", "paid");
+      const { data: updatedOrder } = await admin
+        .from("orders")
+        .update(update)
+        .eq("id", order.id)
+        .neq("status", "paid")
+        .select("id")
+        .maybeSingle();
+
+      // Only the call that actually won the transition (verify or this
+      // webhook, whichever got here first) sends the confirmation — same
+      // "did my update affect a row" guard as api/payments/verify.
+      if (updatedOrder && nextStatus === "paid") {
+        const { data: client } = await admin.from("profiles").select("full_name, email").eq("id", order.client_id).single();
+        if (client?.email) {
+          try {
+            await sendPaymentConfirmationEmail({
+              to: client.email,
+              clientName: client.full_name || "there",
+              description: order.description,
+              amountPaise: order.amount_paise,
+              loginUrl: `${site.url}/login?next=/account/payments`,
+            });
+          } catch (err) {
+            console.error("Failed to send payment confirmation email", err);
+          }
+        }
+      }
     }
 
     await admin.from("payment_events").insert({

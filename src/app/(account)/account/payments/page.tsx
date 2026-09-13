@@ -3,6 +3,7 @@ import { getServerClient } from "@/lib/supabase/server";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { StatusBadge, orderStatusTone } from "@/components/ui/StatusBadge";
 import { PayButton } from "@/components/forms/PayButton";
+import { InvoiceCard } from "@/components/portal/InvoiceCard";
 import { formatPaise } from "@/lib/money";
 
 export const metadata = { title: "Payments" };
@@ -18,7 +19,7 @@ export default async function PaymentsPage() {
   const [{ data: orders }, { data: profile }] = await Promise.all([
     supabase
       .from("orders")
-      .select("id, description, amount_paise, status, created_at, paid_at, razorpay_order_id")
+      .select("id, description, amount_paise, status, created_at, paid_at, razorpay_order_id, razorpay_payment_id, receipt")
       .eq("client_id", user!.id)
       .order("created_at", { ascending: false }),
     supabase.from("profiles").select("full_name").eq("id", user!.id).single(),
@@ -38,6 +39,17 @@ export default async function PaymentsPage() {
       {orders && orders.length > 0 ? (
         <div className="space-y-3">
           {orders.map((order) => {
+            if (order.status === "paid") {
+              return (
+                <InvoiceCard
+                  key={order.id}
+                  order={order}
+                  clientName={profile?.full_name || "there"}
+                  clientEmail={user?.email ?? ""}
+                />
+              );
+            }
+
             const payable = PAYABLE_STATUSES.has(order.status) && !!order.razorpay_order_id;
             return (
               <GlassCard key={order.id} className="flex flex-wrap items-center justify-between gap-3">
@@ -45,7 +57,6 @@ export default async function PaymentsPage() {
                   <p className="font-display text-base font-semibold text-white">{order.description}</p>
                   <p className="mt-1 text-sm text-text-secondary">
                     Requested {new Date(order.created_at).toLocaleDateString("en-IN")}
-                    {order.paid_at ? ` · Paid ${new Date(order.paid_at).toLocaleDateString("en-IN")}` : ""}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">

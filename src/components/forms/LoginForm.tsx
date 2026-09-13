@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getBrowserClient } from "@/lib/supabase/browser";
 import { loginSchema } from "@/lib/validation";
 import { GradientButton } from "@/components/ui/GradientButton";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 const inputClasses =
   "w-full rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-white outline-none transition-colors focus:border-cyan placeholder:text-text-muted";
@@ -78,10 +79,9 @@ export function LoginForm({ next }: { next?: string }) {
             Forgot password?
           </a>
         </div>
-        <input
+        <PasswordInput
           id="login-password"
           name="password"
-          type="password"
           autoComplete="current-password"
           required
           className={inputClasses}

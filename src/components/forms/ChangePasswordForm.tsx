@@ -5,6 +5,7 @@ import { getBrowserClient } from "@/lib/supabase/browser";
 import { setNewPasswordSchema } from "@/lib/validation";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GradientButton } from "@/components/ui/GradientButton";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 const inputClasses =
   "w-full rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-white outline-none transition-colors focus:border-cyan placeholder:text-text-muted";
@@ -56,10 +57,9 @@ export function ChangePasswordForm() {
           <label htmlFor="change-password" className="mb-1.5 block text-sm font-medium text-white">
             New password
           </label>
-          <input
+          <PasswordInput
             id="change-password"
             name="password"
-            type="password"
             autoComplete="new-password"
             minLength={8}
             required
@@ -70,10 +70,9 @@ export function ChangePasswordForm() {
           <label htmlFor="change-password-confirm" className="mb-1.5 block text-sm font-medium text-white">
             Confirm new password
           </label>
-          <input
+          <PasswordInput
             id="change-password-confirm"
             name="confirmPassword"
-            type="password"
             autoComplete="new-password"
             minLength={8}
             required

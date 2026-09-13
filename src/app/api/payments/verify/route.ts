@@ -4,6 +4,8 @@ import { getServerClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { verifyPaymentSchema } from "@/lib/validation";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { sendPaymentConfirmationEmail } from "@/lib/resend";
+import { site } from "@/content/site";
 
 /**
  * Called from the browser immediately after Razorpay Checkout's success
@@ -46,7 +48,7 @@ export async function POST(req: NextRequest) {
   // right response.
   const { data: order } = await supabase
     .from("orders")
-    .select("id, status")
+    .select("id, status, client_id, description, amount_paise")
     .eq("razorpay_order_id", razorpay_order_id)
     .single();
 
@@ -77,9 +79,11 @@ export async function POST(req: NextRequest) {
 
   // Idempotent: only actually flips status the first time this order is
   // marked paid — a second call (retry, or the webhook landing after this
-  // does) is a harmless no-op on the orders row.
+  // does) is a harmless no-op on the orders row. The same guard also means
+  // the confirmation email below only fires on whichever of verify/webhook
+  // actually wins the transition, not both.
   if (order.status !== "paid") {
-    const { error: updateError } = await admin
+    const { data: updatedOrder, error: updateError } = await admin
       .from("orders")
       .update({
         status: "paid",
@@ -88,11 +92,30 @@ export async function POST(req: NextRequest) {
         paid_at: new Date().toISOString(),
       })
       .eq("id", order.id)
-      .neq("status", "paid");
+      .neq("status", "paid")
+      .select("id")
+      .maybeSingle();
 
     if (updateError) {
       console.error("Failed to update order after verify", updateError);
       return NextResponse.json({ ok: false, error: "Failed to record payment." }, { status: 500 });
+    }
+
+    if (updatedOrder) {
+      const { data: client } = await admin.from("profiles").select("full_name, email").eq("id", order.client_id).single();
+      if (client?.email) {
+        try {
+          await sendPaymentConfirmationEmail({
+            to: client.email,
+            clientName: client.full_name || "there",
+            description: order.description,
+            amountPaise: order.amount_paise,
+            loginUrl: `${site.url}/login?next=/account/payments`,
+          });
+        } catch (err) {
+          console.error("Failed to send payment confirmation email", err);
+        }
+      }
     }
   }
 

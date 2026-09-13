@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getBrowserClient } from "@/lib/supabase/browser";
 import { setNewPasswordSchema } from "@/lib/validation";
 import { GradientButton } from "@/components/ui/GradientButton";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 const inputClasses =
   "w-full rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-white outline-none transition-colors focus:border-cyan placeholder:text-text-muted";
@@ -105,10 +106,9 @@ export function ResetPasswordForm() {
         <label htmlFor="new-password" className="mb-1.5 block text-sm font-medium text-white">
           New password
         </label>
-        <input
+        <PasswordInput
           id="new-password"
           name="password"
-          type="password"
           autoComplete="new-password"
           minLength={8}
           required
