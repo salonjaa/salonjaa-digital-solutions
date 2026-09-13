@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { plans } from "@/content/plans";
 import { parsePriceToPaise } from "@/lib/money";
+import { GlassCard } from "@/components/ui/GlassCard";
 import { GradientButton } from "@/components/ui/GradientButton";
 
 const inputClasses =
@@ -18,11 +19,11 @@ function generatePassword() {
 }
 
 export function NewClientForm() {
-  const router = useRouter();
   const [password, setPassword] = useState(generatePassword);
   const [planKey, setPlanKey] = useState("");
   const [status, setStatus] = useState<"idle" | "pending" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [created, setCreated] = useState<{ clientId: string; emailSent: boolean } | null>(null);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -54,12 +55,28 @@ export function NewClientForm() {
         setError(json.error ?? "Failed to create client.");
         return;
       }
-      router.push(`/admin/clients/${json.clientId}`);
-      router.refresh();
+      setStatus("idle");
+      setCreated({ clientId: json.clientId, emailSent: json.emailSent });
     } catch {
       setStatus("error");
       setError("Something went wrong — please try again.");
     }
+  }
+
+  if (created) {
+    return (
+      <GlassCard hover={false} className="space-y-3">
+        <p className="text-sm text-emerald">Client account created.</p>
+        <p className="text-sm text-text-secondary">
+          {created.emailSent
+            ? "Their login (email + password) was emailed to them automatically."
+            : "The welcome email failed to send — use \"Reset Password\" on their profile to generate and resend it."}
+        </p>
+        <Link href={`/admin/clients/${created.clientId}`} data-cursor-hover className="inline-block">
+          <GradientButton>Go to client</GradientButton>
+        </Link>
+      </GlassCard>
+    );
   }
 
   return (
@@ -133,7 +150,7 @@ export function NewClientForm() {
           </button>
         </div>
         <p className="mt-1.5 text-xs text-text-muted">
-          Copy this — you&apos;ll need to send it to the client yourself (WhatsApp/email) after creating the account.
+          This will be emailed to the client automatically once the account is created.
         </p>
       </div>
       {status === "error" && error && (

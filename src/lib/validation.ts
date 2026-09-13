@@ -65,3 +65,45 @@ export const notifyPaymentSchema = z.object({
 });
 
 export type NotifyPaymentPayload = z.infer<typeof notifyPaymentSchema>;
+
+export const updateClientSchema = z.object({
+  fullName: z.string().min(1, "Name is required").max(120),
+  phone: z.string().max(20).optional().or(z.literal("")),
+  companyName: z.string().max(120).optional().or(z.literal("")),
+});
+
+export type UpdateClientPayload = z.infer<typeof updateClientSchema>;
+
+export const assignPlanSchema = z.object({
+  planKey: z.string().min(1, "Plan is required").max(40),
+  planName: z.string().min(1).max(120),
+  basePricePaise: z.number().int().min(0),
+  notes: z.string().max(500).optional().or(z.literal("")),
+  endCurrentPlan: z.boolean().default(true),
+});
+
+export type AssignPlanPayload = z.infer<typeof assignPlanSchema>;
+
+export const updatePlanSchema = z.object({
+  planId: z.string().uuid(),
+  status: z.enum(["active", "paused", "ended"]),
+  notes: z.string().max(500).optional().or(z.literal("")),
+});
+
+export type UpdatePlanPayload = z.infer<typeof updatePlanSchema>;
+
+export const domainSchema = z.object({
+  domainName: z.string().min(1, "Domain is required").max(255),
+  registrar: z.string().max(120).optional().or(z.literal("")),
+  status: z.enum(["registered", "dns_pending", "live", "expired"]),
+  purchasedAt: z.string().max(10).optional().or(z.literal("")),
+  renewalDate: z.string().max(10).optional().or(z.literal("")),
+  autoRenew: z.boolean().default(false),
+  notes: z.string().max(500).optional().or(z.literal("")),
+});
+
+export type DomainPayload = z.infer<typeof domainSchema>;
+
+export const updateDomainSchema = domainSchema.extend({ domainId: z.string().uuid() });
+
+export type UpdateDomainPayload = z.infer<typeof updateDomainSchema>;

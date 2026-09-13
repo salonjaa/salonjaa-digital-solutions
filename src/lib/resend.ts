@@ -50,6 +50,21 @@ export async function sendContactEmail(data: ContactPayload) {
   return result;
 }
 
+export async function sendWelcomeEmail(params: { to: string; clientName: string; password: string; loginUrl: string }) {
+  const { data: result, error } = await getClient().emails.send({
+    from: fromAddress(),
+    to: params.to,
+    subject: "Your Salonjaa Digital Solutions account",
+    text: `Hi ${params.clientName},\n\nYour account is ready. Log in to see your plan, payments, and domain status:\n\n${params.loginUrl}\n\nEmail: ${params.to}\nPassword: ${params.password}\n\nIf you'd like this password changed, just let us know.\n\n— Salonjaa Digital Solutions`,
+  });
+
+  if (error) {
+    throw new Error(`Resend API error: ${error.name} — ${error.message}`);
+  }
+
+  return result;
+}
+
 export async function sendPaymentRequestEmail(params: {
   to: string;
   clientName: string;

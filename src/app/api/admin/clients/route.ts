@@ -3,6 +3,8 @@ import { getServerClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { createClientSchema } from "@/lib/validation";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { sendWelcomeEmail } from "@/lib/resend";
+import { site } from "@/content/site";
 
 /**
  * Admin provisions a client's login (email + admin-set password — no
@@ -93,5 +95,21 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, clientId });
+  // Best-effort — a failed welcome email shouldn't undo a successfully
+  // created account. Admin still sees the password in the form either way
+  // and can resend it later via the reset-password action.
+  let emailSent = true;
+  try {
+    await sendWelcomeEmail({
+      to: email,
+      clientName: fullName,
+      password,
+      loginUrl: `${site.url}/login`,
+    });
+  } catch (err) {
+    console.error("Failed to send welcome email", err);
+    emailSent = false;
+  }
+
+  return NextResponse.json({ ok: true, clientId, emailSent });
 }

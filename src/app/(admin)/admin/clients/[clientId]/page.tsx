@@ -2,7 +2,10 @@ import { notFound } from "next/navigation";
 import { getServerClient } from "@/lib/supabase/server";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GradientButton } from "@/components/ui/GradientButton";
-import { StatusBadge, planStatusTone, orderStatusTone, domainStatusTone } from "@/components/ui/StatusBadge";
+import { StatusBadge, orderStatusTone } from "@/components/ui/StatusBadge";
+import { ClientProfileEditor } from "@/components/admin/ClientProfileEditor";
+import { PlanManager } from "@/components/admin/PlanManager";
+import { DomainManager } from "@/components/admin/DomainManager";
 import { formatPaise } from "@/lib/money";
 
 export const metadata = { title: "Client — Admin" };
@@ -25,7 +28,11 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
       .select("id, plan_name, status, base_price_paise, started_at")
       .eq("client_id", clientId)
       .order("started_at", { ascending: false }),
-    supabase.from("domain_status").select("id, domain_name, status").eq("client_id", clientId),
+    supabase
+      .from("domain_status")
+      .select("id, domain_name, registrar, status, purchased_at, renewal_date, auto_renew, notes")
+      .eq("client_id", clientId)
+      .order("domain_name", { ascending: true }),
     supabase
       .from("orders")
       .select("id, description, amount_paise, status, created_at")
@@ -36,52 +43,15 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-white">
-            {client.full_name || client.company_name || "Unnamed client"}
-          </h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            {[client.email, client.phone].filter(Boolean).join(" · ") || "No contact details on file"}
-          </p>
-        </div>
-        <GradientButton href={`/admin/clients/${clientId}/payments/new`}>New Payment Request</GradientButton>
-      </div>
+      <ClientProfileEditor client={client} />
+
+      <GradientButton href={`/admin/clients/${clientId}/payments/new`}>New Payment Request</GradientButton>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <GlassCard>
-          <p className="text-xs uppercase tracking-wide text-text-muted">Plans</p>
-          {plans && plans.length > 0 ? (
-            <ul className="mt-2 space-y-2">
-              {plans.map((plan) => (
-                <li key={plan.id} className="flex items-center justify-between gap-2 text-sm">
-                  <span className="text-white">{plan.plan_name}</span>
-                  <StatusBadge label={plan.status} tone={planStatusTone[plan.status]} />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-2 text-sm text-text-secondary">None assigned.</p>
-          )}
-        </GlassCard>
+        <PlanManager clientId={clientId} plans={plans ?? []} />
+        <DomainManager clientId={clientId} domains={domains ?? []} />
 
-        <GlassCard>
-          <p className="text-xs uppercase tracking-wide text-text-muted">Domains</p>
-          {domains && domains.length > 0 ? (
-            <ul className="mt-2 space-y-2">
-              {domains.map((d) => (
-                <li key={d.id} className="flex items-center justify-between gap-2 text-sm">
-                  <span className="text-white">{d.domain_name}</span>
-                  <StatusBadge label={d.status.replace("_", " ")} tone={domainStatusTone[d.status]} />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-2 text-sm text-text-secondary">None on file.</p>
-          )}
-        </GlassCard>
-
-        <GlassCard>
+        <GlassCard hover={false}>
           <p className="text-xs uppercase tracking-wide text-text-muted">Recent Orders</p>
           {orders && orders.length > 0 ? (
             <ul className="mt-2 space-y-2">
@@ -99,9 +69,9 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
       </div>
 
       {/*
-        Editing an existing client's plan/assets/domain status after
-        creation is still a follow-up — for now those are set at creation
-        time (plan) or not editable from the UI yet (assets/domain).
+        client_assets (files/credentials/notes/links) has no admin UI yet —
+        the table and client-facing display already exist, this is a
+        follow-up.
       */}
     </div>
   );
