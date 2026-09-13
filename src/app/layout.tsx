@@ -8,6 +8,7 @@ import { CustomCursor } from "@/components/cursor/CustomCursor";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { BackToTop } from "@/components/layout/BackToTop";
+import { Analytics } from "@vercel/analytics/next";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <BackToTop />
           </LenisProvider>
         </GsapProvider>
+        <Analytics />
       </body>
     </html>
   );
