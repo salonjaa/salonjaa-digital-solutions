@@ -21,7 +21,7 @@ function ContactCard({ member, highlightPhone }: { member: TeamMember; highlight
         <a
           href={member.phoneHref}
           data-cursor-hover
-          className="text-gradient-accent mt-4 block font-display text-xl font-bold tracking-wide"
+          className="mt-4 block font-display text-xl font-bold tracking-wide text-cyan"
         >
           {member.phone}
         </a>
@@ -51,14 +51,16 @@ export function Contact() {
             <ContactForm />
           </SectionReveal>
           <SectionReveal as="div" stagger={0.1} className="grid gap-5 sm:grid-cols-2">
+            <SectionRevealItem className="sm:col-span-2">
+              {/* Snehanjali is the first point of contact — her card leads
+                  and spans the full width rather than sharing a row. */}
+              <ContactCard member={team.snehanjali} highlightPhone />
+            </SectionRevealItem>
             <SectionRevealItem>
               <ContactCard member={team.kumar} />
             </SectionRevealItem>
             <SectionRevealItem>
               <ContactCard member={team.saroj} />
-            </SectionRevealItem>
-            <SectionRevealItem>
-              <ContactCard member={team.snehanjali} highlightPhone />
             </SectionRevealItem>
             <SectionRevealItem className="sm:col-span-2">
               <GlassCard variant="deep" className="min-w-0">
