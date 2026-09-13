@@ -7,3 +7,13 @@
 export function withWhatsappMessage(whatsappUrl: string, message: string) {
   return `${whatsappUrl}?text=${encodeURIComponent(message)}`;
 }
+
+/**
+ * Builds a `wa.me` link from a free-text phone number (as entered in an
+ * admin form, e.g. `client_plans`/`profiles.phone`) — strips everything but
+ * digits, since `wa.me` needs the number in `<countrycode><number>` form
+ * with no spaces/punctuation.
+ */
+export function waLinkFromPhone(phone: string) {
+  return `https://wa.me/${phone.replace(/\D/g, "")}`;
+}

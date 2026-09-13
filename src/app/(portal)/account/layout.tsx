@@ -22,7 +22,16 @@ export default async function AccountLayout({ children }: { children: React.Reac
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("full_name, company_name").eq("id", user.id).single();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, company_name, is_admin")
+    .eq("id", user.id)
+    .single();
+
+  // Admins have no client data of their own (no plan/orders/domain rows),
+  // so landing here directly — e.g. an old bookmark, or typing the URL —
+  // would just show an empty client dashboard. Send them to /admin instead.
+  if (profile?.is_admin) redirect("/admin");
 
   return (
     <div className="grid gap-8 md:grid-cols-[200px_1fr]">

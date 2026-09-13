@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BrandMark } from "./BrandMark";
 import { MobileMenu } from "./MobileMenu";
+import { AccountNavLink } from "./AccountNavLink";
 import { navLinks } from "@/content/nav";
 import { site } from "@/content/site";
 import { GradientButton } from "@/components/ui/GradientButton";
@@ -48,7 +49,8 @@ export function Navbar() {
             ))}
           </div>
 
-          <div className="hidden md:block">
+          <div className="hidden items-center gap-5 md:flex">
+            <AccountNavLink className="text-sm font-medium text-text-secondary transition-colors hover:text-white" />
             <GradientButton href="#contact" size="md">
               Book A Free Call
             </GradientButton>

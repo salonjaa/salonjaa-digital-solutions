@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getServerClient } from "@/lib/supabase/server";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { GradientButton } from "@/components/ui/GradientButton";
 import { StatusBadge, planStatusTone, orderStatusTone, domainStatusTone } from "@/components/ui/StatusBadge";
 import { formatPaise } from "@/lib/money";
 
@@ -12,7 +13,7 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
 
   const { data: client } = await supabase
     .from("profiles")
-    .select("id, full_name, company_name, phone, is_admin")
+    .select("id, full_name, company_name, phone, email, is_admin")
     .eq("id", clientId)
     .single();
 
@@ -35,11 +36,16 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-semibold text-white">
-          {client.full_name || client.company_name || "Unnamed client"}
-        </h1>
-        {client.phone && <p className="mt-1 text-sm text-text-secondary">{client.phone}</p>}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-white">
+            {client.full_name || client.company_name || "Unnamed client"}
+          </h1>
+          <p className="mt-1 text-sm text-text-secondary">
+            {[client.email, client.phone].filter(Boolean).join(" · ") || "No contact details on file"}
+          </p>
+        </div>
+        <GradientButton href={`/admin/clients/${clientId}/payments/new`}>New Payment Request</GradientButton>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -93,11 +99,9 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
       </div>
 
       {/*
-        Editing plan/assets/domain and generating a payment request all need
-        api/admin/... routes backed by SUPABASE_SERVICE_ROLE_KEY (assigning a
-        plan is a plain RLS-covered write and doesn't strictly need it, but
-        the create-client flow that gets a client here at all does) — those
-        land once that key is configured.
+        Editing an existing client's plan/assets/domain status after
+        creation is still a follow-up — for now those are set at creation
+        time (plan) or not editable from the UI yet (assets/domain).
       */}
     </div>
   );

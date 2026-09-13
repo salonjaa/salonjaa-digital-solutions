@@ -28,6 +28,10 @@ yarn-error.log*
 .env*
 !.env.local.example
 
+# Razorpay's dashboard offers a "download as CSV" option when generating
+# API keys — never let one of those land in the repo.
+rzp-key*.csv
+
 # vercel
 .vercel
 
