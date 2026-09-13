@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getServerClient } from "@/lib/supabase/server";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { StatusBadge, orderStatusTone } from "@/components/ui/StatusBadge";
-import { StatTile } from "@/components/admin/StatTile";
+import { StatTile } from "@/components/ui/StatTile";
 import { RevenueChart } from "@/components/admin/RevenueChart";
 import { StatusBreakdownChart } from "@/components/admin/StatusBreakdownChart";
 import { UsersIcon, BriefcaseIcon, RupeeIcon, ClockIcon } from "@/components/icons/AdminIcons";

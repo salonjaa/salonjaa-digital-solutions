@@ -23,6 +23,18 @@ export const loginSchema = z.object({
 
 export type LoginPayload = z.infer<typeof loginSchema>;
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Enter a valid email"),
+});
+
+export type ForgotPasswordPayload = z.infer<typeof forgotPasswordSchema>;
+
+export const setNewPasswordSchema = z.object({
+  password: z.string().min(8, "At least 8 characters").max(72),
+});
+
+export type SetNewPasswordPayload = z.infer<typeof setNewPasswordSchema>;
+
 const lineItemSchema = z.object({
   label: z.string().min(1).max(120),
   amount_paise: z.number().int().positive(),

@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { getServerClient } from "@/lib/supabase/server";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { StatTile } from "@/components/ui/StatTile";
 import { StatusBadge, planStatusTone, orderStatusTone, domainStatusTone } from "@/components/ui/StatusBadge";
+import { BriefcaseIcon, RupeeIcon } from "@/components/icons/AdminIcons";
+import { GlobeIcon } from "@/components/icons/PortalIcons";
 import { formatPaise } from "@/lib/money";
 
 export const metadata = { title: "My Account" };
@@ -38,6 +41,17 @@ export default async function AccountOverviewPage() {
   return (
     <div className="space-y-6">
       <h1 className="font-display text-2xl font-semibold text-white">Overview</h1>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatTile label="Current Plan" value={plan?.plan_name ?? "None"} icon={BriefcaseIcon} />
+        <StatTile
+          label="Pending Payment"
+          value={pendingOrder ? formatPaise(pendingOrder.amount_paise) : "None"}
+          icon={RupeeIcon}
+          tone={pendingOrder ? "warning" : "default"}
+        />
+        <StatTile label="Domains" value={String(domains?.length ?? 0)} icon={GlobeIcon} />
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <GlassCard>

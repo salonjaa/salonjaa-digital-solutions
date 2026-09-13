@@ -70,9 +70,14 @@ export function LoginForm({ next }: { next?: string }) {
         <input id="login-email" name="email" type="email" autoComplete="email" required className={inputClasses} />
       </div>
       <div>
-        <label htmlFor="login-password" className="mb-1.5 block text-sm font-medium text-white">
-          Password
-        </label>
+        <div className="mb-1.5 flex items-center justify-between">
+          <label htmlFor="login-password" className="text-sm font-medium text-white">
+            Password
+          </label>
+          <a href="/forgot-password" data-cursor-hover className="text-xs text-cyan hover:underline">
+            Forgot password?
+          </a>
+        </div>
         <input
           id="login-password"
           name="password"
