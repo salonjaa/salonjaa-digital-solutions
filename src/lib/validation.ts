@@ -15,3 +15,34 @@ export const contactSchema = z.object({
 });
 
 export type ContactPayload = z.infer<typeof contactSchema>;
+
+export const loginSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Enter a valid email"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export type LoginPayload = z.infer<typeof loginSchema>;
+
+const lineItemSchema = z.object({
+  label: z.string().min(1).max(120),
+  amount_paise: z.number().int().positive(),
+});
+
+// Razorpay's own minimum order amount is 100 paise (₹1).
+export const createPaymentRequestSchema = z.object({
+  clientId: z.string().uuid(),
+  clientPlanId: z.string().uuid().optional(),
+  description: z.string().min(1, "Description is required").max(200),
+  lineItems: z.array(lineItemSchema).default([]),
+  amountPaise: z.number().int().min(100, "Minimum amount is ₹1 (100 paise)"),
+});
+
+export type CreatePaymentRequestPayload = z.infer<typeof createPaymentRequestSchema>;
+
+export const verifyPaymentSchema = z.object({
+  razorpay_order_id: z.string().min(1),
+  razorpay_payment_id: z.string().min(1),
+  razorpay_signature: z.string().min(1),
+});
+
+export type VerifyPaymentPayload = z.infer<typeof verifyPaymentSchema>;
