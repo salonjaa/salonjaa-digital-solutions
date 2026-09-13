@@ -2,12 +2,6 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 import { site } from "@/content/site";
-import { GsapProvider } from "@/components/providers/GsapProvider";
-import { LenisProvider } from "@/components/providers/LenisProvider";
-import { CustomCursor } from "@/components/cursor/CustomCursor";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { BackToTop } from "@/components/layout/BackToTop";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -44,6 +38,10 @@ export const metadata: Metadata = {
   // Favicon is picked up automatically from src/app/icon.png (Next.js file convention).
 };
 
+// Bare shell only — fonts, global CSS, metadata. The marketing chrome
+// (Navbar/Footer/CustomCursor/Lenis/GSAP smooth-scroll) lives in
+// (marketing)/layout.tsx instead, since the client portal and admin panel
+// under (portal) and (admin) want none of it.
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -54,15 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
-        <GsapProvider>
-          <LenisProvider>
-            <CustomCursor />
-            <Navbar />
-            <main>{children}</main>
-            <Footer />
-            <BackToTop />
-          </LenisProvider>
-        </GsapProvider>
+        {children}
       </body>
     </html>
   );

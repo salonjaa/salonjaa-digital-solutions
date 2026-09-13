@@ -8,7 +8,7 @@ export const site = {
   name: "Salonjaa Digital Solutions",
   shortName: "Salonjaa",
   tagline: "We design. We market. You thrive.",
-  url: "https://salonjaadigitalsolutions.com", // TODO: confirm final production domain
+  url: "https://www.salonjaa.com",
   description:
     "Salonjaa Digital Solutions is a two-person freelance studio in Bhubaneswar building custom, responsive websites, e-commerce & business portals, SEO, and domain & hosting management — one developer, one marketer, no hand-offs.",
   ogDescription:

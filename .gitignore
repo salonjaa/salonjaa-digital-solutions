@@ -28,6 +28,10 @@ yarn-error.log*
 .env*
 !.env.local.example
 
+# Razorpay's dashboard offers a "download as CSV" option when generating
+# API keys — never let one of those land in the repo.
+rzp-key*.csv
+
 # vercel
 .vercel
 
@@ -38,3 +42,12 @@ next-env.d.ts
 # Editor/tooling
 .vscode/
 .idea/
+
+# Claude Code — personal local settings, not shared (unlike .mcp.json,
+# which IS committed so teammates get the same project MCP servers)
+.claude/settings.local.json
+
+# Agent skill caches — auto-fetched reference docs for AI coding tools,
+# not application code
+.agents/
+skills-lock.json

@@ -49,3 +49,30 @@ export async function sendContactEmail(data: ContactPayload) {
 
   return result;
 }
+
+export async function sendPaymentRequestEmail(params: {
+  to: string;
+  clientName: string;
+  description: string;
+  amountPaise: number;
+  loginUrl: string;
+}) {
+  const amount = new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(params.amountPaise / 100);
+
+  const { data: result, error } = await getClient().emails.send({
+    from: fromAddress(),
+    to: params.to,
+    subject: `Payment request from Salonjaa Digital Solutions — ${amount}`,
+    text: `Hi ${params.clientName},\n\nA payment request for ${amount} (${params.description}) is ready on your account.\n\nLog in to pay: ${params.loginUrl}\n\n— Salonjaa Digital Solutions`,
+  });
+
+  if (error) {
+    throw new Error(`Resend API error: ${error.name} — ${error.message}`);
+  }
+
+  return result;
+}
