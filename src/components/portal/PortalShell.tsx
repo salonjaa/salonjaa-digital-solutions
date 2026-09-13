@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandMark } from "@/components/layout/BrandMark";
 import { LogoutButton } from "@/components/forms/LogoutButton";
-import { DashboardIcon, BriefcaseIcon, RupeeIcon, ChatBubbleIcon, MenuIcon, CloseIcon } from "@/components/icons/AdminIcons";
+import { DashboardIcon, BriefcaseIcon, RupeeIcon, ChatBubbleIcon, SettingsIcon, MenuIcon, CloseIcon } from "@/components/icons/AdminIcons";
 import { GlobeIcon } from "@/components/icons/PortalIcons";
 import { cn } from "@/lib/cn";
 
@@ -15,6 +15,7 @@ const navItems = [
   { href: "/account/payments", label: "Payments", icon: RupeeIcon, exact: false },
   { href: "/account/domain", label: "Domain", icon: GlobeIcon, exact: false },
   { href: "/account/chat", label: "Chat", icon: ChatBubbleIcon, exact: false },
+  { href: "/account/settings", label: "Settings", icon: SettingsIcon, exact: false },
 ];
 
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {

@@ -5,13 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandMark } from "@/components/layout/BrandMark";
 import { LogoutButton } from "@/components/forms/LogoutButton";
-import { DashboardIcon, UsersIcon, ChatBubbleIcon, MenuIcon, CloseIcon } from "@/components/icons/AdminIcons";
+import { DashboardIcon, UsersIcon, ChatBubbleIcon, SettingsIcon, MenuIcon, CloseIcon } from "@/components/icons/AdminIcons";
 import { cn } from "@/lib/cn";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: DashboardIcon, exact: true },
   { href: "/admin/clients", label: "Clients", icon: UsersIcon, exact: false },
   { href: "/admin/chat", label: "Chat", icon: ChatBubbleIcon, exact: false },
+  { href: "/admin/settings", label: "Settings", icon: SettingsIcon, exact: false },
 ];
 
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
