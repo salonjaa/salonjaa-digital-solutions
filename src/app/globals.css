@@ -249,3 +249,26 @@ main section[id],
   background: var(--accent-violet);
   color: white;
 }
+
+/* ------------------------- Receipt print/download ------------------------ */
+/* DownloadReceiptButton triggers window.print(); this is what makes that
+   produce just the receipt (as a clean "Save as PDF") instead of the whole
+   dashboard page around it. Any page rendering <Receipt> must wrap it in
+   an element carrying `receipt-print-area`. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .receipt-print-area,
+  .receipt-print-area * {
+    visibility: visible;
+  }
+  .receipt-print-area {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
