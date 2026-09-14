@@ -1,38 +1,69 @@
 "use client";
 
+import { useState } from "react";
+
 /**
- * "Download" = the browser's own print dialog, set to "Save as PDF" — no
- * PDF-generation dependency needed, and it renders exactly the same HTML/
- * CSS the user already sees. globals.css's @media print rules hide
- * everything on the page except whichever element currently carries the
- * `receipt-print-area` class.
+ * Generates a real PDF client-side (html2canvas snapshots the receipt DOM
+ * node, jsPDF wraps that image in a PDF sized to match) and saves it
+ * directly — no browser print dialog / print-preview step, unlike the
+ * earlier window.print() approach. That approach also had a real bug: the
+ * print CSS's `position: absolute` couldn't escape an `overflow-hidden`
+ * ancestor, so only the receipt's header ever actually printed. Rendering
+ * to a canvas and embedding that as one image sidesteps the whole class of
+ * "did CSS visibility/print rules actually apply" problems.
  *
- * `targetId` matters when more than one receipt can be on the page at once
- * (a client with several paid orders, each independently expandable) — a
- * static class on every receipt wrapper would print ALL of them if more
- * than one happened to be expanded. So instead this strips the class from
- * every candidate and re-adds it only to the one being downloaded, right
- * before printing, guaranteeing exactly one receipt prints regardless of
- * how many are expanded on screen.
+ * jspdf/html2canvas are dynamically imported so their bundle weight only
+ * loads if someone actually clicks Download, not on every page view.
+ *
+ * `targetId` must be the id of the (already-rendered, even if visually
+ * off-screen) element to capture — see InvoiceCard's off-screen Receipt.
  */
-export function DownloadReceiptButton({ targetId, className }: { targetId: string; className?: string }) {
-  function handleClick() {
-    document.querySelectorAll(".receipt-print-candidate").forEach((el) => el.classList.remove("receipt-print-area"));
-    document.getElementById(targetId)?.classList.add("receipt-print-area");
-    window.print();
+export function DownloadReceiptButton({
+  targetId,
+  fileName,
+  className,
+}: {
+  targetId: string;
+  fileName: string;
+  className?: string;
+}) {
+  const [status, setStatus] = useState<"idle" | "pending" | "error">("idle");
+
+  async function handleClick() {
+    const node = document.getElementById(targetId);
+    if (!node) return;
+
+    setStatus("pending");
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
+
+      const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
+      const imageData = canvas.toDataURL("image/png");
+
+      // Page sized to exactly match the captured content — one receipt,
+      // one page, no scaling/cropping math against a fixed paper size.
+      const pdf = new jsPDF({ unit: "px", format: [canvas.width, canvas.height] });
+      pdf.addImage(imageData, "PNG", 0, 0, canvas.width, canvas.height);
+      pdf.save(`${fileName}.pdf`);
+      setStatus("idle");
+    } catch (err) {
+      console.error("Failed to generate receipt PDF", err);
+      setStatus("error");
+    }
   }
 
   return (
     <button
       type="button"
       onClick={handleClick}
+      disabled={status === "pending"}
       data-cursor-hover
       className={
         className ??
-        "inline-flex items-center gap-2 rounded-full bg-[#0f2942] px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+        "inline-flex items-center gap-2 rounded-full bg-cyan px-4 py-2 text-sm font-semibold text-[#0f2942] transition-opacity hover:opacity-90 disabled:opacity-60"
       }
     >
-      Download Receipt
+      {status === "pending" ? "Preparing…" : status === "error" ? "Failed — retry" : "Download Receipt"}
     </button>
   );
 }

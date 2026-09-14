@@ -65,7 +65,7 @@ export function Receipt({ data }: { data: ReceiptData }) {
   const subtotalPaise = data.lineItems.reduce((sum, item) => sum + item.amountPaise, 0);
 
   return (
-    <div className="mx-auto max-w-3xl bg-white p-8 text-[#0f2942] shadow-xl print:shadow-none sm:p-12">
+    <div className="mx-auto max-w-3xl bg-[#ffffff] p-8 text-[#0f2942] shadow-xl sm:p-12">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-6 border-b-2 border-[#0f2942]/10 pb-6">
         <div className="flex items-center gap-3">
@@ -151,7 +151,7 @@ export function Receipt({ data }: { data: ReceiptData }) {
             <div className="flex justify-between gap-3">
               <dt className="text-[#0f2942]/60">Status</dt>
               <dd>
-                <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold tracking-wide text-emerald-700">
+                <span className="rounded-full bg-[#d1fae5] px-2.5 py-0.5 text-xs font-bold tracking-wide text-[#047857]">
                   PAID
                 </span>
               </dd>
@@ -163,7 +163,7 @@ export function Receipt({ data }: { data: ReceiptData }) {
             <span>SUBTOTAL</span>
             <span>{formatINR(subtotalPaise)}</span>
           </div>
-          <div className="flex justify-between bg-[#0f2942] px-4 py-3 text-base font-bold text-white">
+          <div className="flex justify-between bg-[#0f2942] px-4 py-3 text-base font-bold text-[#ffffff]">
             <span>TOTAL PAID</span>
             <span>{formatINR(data.amountPaise)}</span>
           </div>

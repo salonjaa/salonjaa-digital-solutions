@@ -27,17 +27,17 @@ const sampleReceipt: ReceiptData = {
 export default function ReceiptPreviewPage() {
   return (
     <div className="space-y-6">
-      <div className="no-print flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-semibold text-white">Receipt Preview</h1>
           <p className="mt-1 text-sm text-text-secondary">
-            Sample data only — for design review. Click Download to test the print/PDF output.
+            Sample data only — for design review. Click Download to test the actual PDF output.
           </p>
         </div>
-        <DownloadReceiptButton targetId="receipt-sample" />
+        <DownloadReceiptButton targetId="receipt-sample" fileName="Salonjaa-Receipt-Sample" />
       </div>
 
-      <div id="receipt-sample" className="receipt-print-candidate rounded-2xl">
+      <div id="receipt-sample" className="overflow-hidden rounded-2xl">
         <Receipt data={sampleReceipt} />
       </div>
     </div>

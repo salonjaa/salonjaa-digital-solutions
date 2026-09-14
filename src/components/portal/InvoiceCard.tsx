@@ -1,13 +1,8 @@
-"use client";
-
-import { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { ChevronDownIcon } from "@/components/icons/AdminIcons";
 import { Receipt, type ReceiptData } from "@/components/portal/Receipt";
 import { DownloadReceiptButton } from "@/components/portal/DownloadReceiptButton";
 import { formatPaise } from "@/lib/money";
-import { cn } from "@/lib/cn";
 import type { Json } from "@/lib/supabase/types";
 
 type PaidOrder = {
@@ -38,7 +33,13 @@ function toLineItems(order: PaidOrder): ReceiptData["lineItems"] {
   return [{ label: order.description, amountPaise: order.amount_paise }];
 }
 
-/** A paid order, expandable into the full downloadable Receipt. */
+/**
+ * A paid order — a compact summary row with a Download Receipt button.
+ * The full Receipt is never shown inline on the page; it's rendered
+ * off-screen (real layout, real fonts/images loaded, just positioned
+ * outside the viewport) purely so DownloadReceiptButton's html2canvas
+ * capture has a real DOM node to snapshot when clicked.
+ */
 export function InvoiceCard({
   order,
   client,
@@ -46,8 +47,6 @@ export function InvoiceCard({
   order: PaidOrder;
   client: { name: string; company?: string | null; email: string; phone?: string | null };
 }) {
-  const [open, setOpen] = useState(false);
-
   const receiptData: ReceiptData = {
     receiptNumber: order.receipt,
     paidAt: order.paid_at ?? new Date().toISOString(),
@@ -57,38 +56,30 @@ export function InvoiceCard({
     amountPaise: order.amount_paise,
   };
 
-  return (
-    <GlassCard className="overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        data-cursor-hover
-        className="no-print flex w-full flex-wrap items-center justify-between gap-3 text-left"
-      >
-        <div>
-          <p className="font-display text-base font-semibold text-white">{order.description}</p>
-          <p className="mt-1 text-sm text-text-secondary">
-            {order.paid_at ? `Paid ${new Date(order.paid_at).toLocaleDateString("en-IN")}` : "Paid"}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="font-display text-lg font-semibold text-white">{formatPaise(order.amount_paise)}</span>
-          <StatusBadge label="paid" tone="positive" />
-          <ChevronDownIcon className={cn("h-4 w-4 text-text-muted transition-transform", open && "rotate-180")} />
-        </div>
-      </button>
+  const elementId = `receipt-${order.id}`;
 
-      {open && (
-        <div className="mt-4 space-y-4 border-t border-white/10 pt-4">
-          <div className="no-print flex justify-end">
-            <DownloadReceiptButton targetId={`receipt-${order.id}`} />
-          </div>
-          <div id={`receipt-${order.id}`} className="receipt-print-candidate -mx-6 -mb-6 rounded-b-2xl">
-            <Receipt data={receiptData} />
-          </div>
+  return (
+    <GlassCard className="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <p className="font-display text-base font-semibold text-white">{order.description}</p>
+        <p className="mt-1 text-sm text-text-secondary">
+          {order.paid_at ? `Paid ${new Date(order.paid_at).toLocaleDateString("en-IN")}` : "Paid"}
+        </p>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="font-display text-lg font-semibold text-white">{formatPaise(order.amount_paise)}</span>
+        <StatusBadge label="paid" tone="positive" />
+        <DownloadReceiptButton targetId={elementId} fileName={`Salonjaa-Receipt-${order.receipt}`} />
+      </div>
+
+      {/* Off-screen, not display:none — needs to actually render (fonts,
+          layout, the logo image) for html2canvas to capture it, just never
+          visible to the user in normal page flow. */}
+      <div aria-hidden="true" style={{ position: "fixed", top: 0, left: "-10000px", zIndex: -1 }}>
+        <div id={elementId}>
+          <Receipt data={receiptData} />
         </div>
-      )}
+      </div>
     </GlassCard>
   );
 }
