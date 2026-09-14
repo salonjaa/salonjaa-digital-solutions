@@ -34,10 +34,10 @@ export default function ReceiptPreviewPage() {
             Sample data only — for design review. Click Download to test the print/PDF output.
           </p>
         </div>
-        <DownloadReceiptButton />
+        <DownloadReceiptButton targetId="receipt-sample" />
       </div>
 
-      <div className="receipt-print-area rounded-2xl">
+      <div id="receipt-sample" className="receipt-print-candidate rounded-2xl">
         <Receipt data={sampleReceipt} />
       </div>
     </div>

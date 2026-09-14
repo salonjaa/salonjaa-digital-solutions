@@ -4,9 +4,11 @@ import { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ChevronDownIcon } from "@/components/icons/AdminIcons";
+import { Receipt, type ReceiptData } from "@/components/portal/Receipt";
+import { DownloadReceiptButton } from "@/components/portal/DownloadReceiptButton";
 import { formatPaise } from "@/lib/money";
-import { site } from "@/content/site";
 import { cn } from "@/lib/cn";
+import type { Json } from "@/lib/supabase/types";
 
 type PaidOrder = {
   id: string;
@@ -15,16 +17,45 @@ type PaidOrder = {
   paid_at: string | null;
   razorpay_payment_id: string | null;
   receipt: string;
+  line_items: Json;
 };
 
-/**
- * A paid order, expandable into invoice-like detail. Deliberately simple —
- * a real invoice template is coming later (per the admin's note) and will
- * likely replace this card's expanded content, not the card/toggle
- * mechanism itself.
- */
-export function InvoiceCard({ order, clientName, clientEmail }: { order: PaidOrder; clientName: string; clientEmail: string }) {
+function toLineItems(order: PaidOrder): ReceiptData["lineItems"] {
+  if (Array.isArray(order.line_items) && order.line_items.length > 0) {
+    const items = order.line_items
+      .map((raw) => {
+        if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+        const label = "label" in raw && typeof raw.label === "string" ? raw.label : null;
+        const amount = "amount_paise" in raw && typeof raw.amount_paise === "number" ? raw.amount_paise : null;
+        return label && amount !== null ? { label, amountPaise: amount } : null;
+      })
+      .filter((item): item is { label: string; amountPaise: number } => item !== null);
+    if (items.length > 0) return items;
+  }
+  // No itemized breakdown on file (the common case today — payment
+  // requests aren't itemized yet) — fall back to a single line so the
+  // receipt's total always matches amount_paise exactly.
+  return [{ label: order.description, amountPaise: order.amount_paise }];
+}
+
+/** A paid order, expandable into the full downloadable Receipt. */
+export function InvoiceCard({
+  order,
+  client,
+}: {
+  order: PaidOrder;
+  client: { name: string; company?: string | null; email: string; phone?: string | null };
+}) {
   const [open, setOpen] = useState(false);
+
+  const receiptData: ReceiptData = {
+    receiptNumber: order.receipt,
+    paidAt: order.paid_at ?? new Date().toISOString(),
+    paymentId: order.razorpay_payment_id,
+    client,
+    lineItems: toLineItems(order),
+    amountPaise: order.amount_paise,
+  };
 
   return (
     <GlassCard className="overflow-hidden">
@@ -33,7 +64,7 @@ export function InvoiceCard({ order, clientName, clientEmail }: { order: PaidOrd
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         data-cursor-hover
-        className="flex w-full flex-wrap items-center justify-between gap-3 text-left"
+        className="no-print flex w-full flex-wrap items-center justify-between gap-3 text-left"
       >
         <div>
           <p className="font-display text-base font-semibold text-white">{order.description}</p>
@@ -50,40 +81,12 @@ export function InvoiceCard({ order, clientName, clientEmail }: { order: PaidOrd
 
       {open && (
         <div className="mt-4 space-y-4 border-t border-white/10 pt-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-text-muted">Billed to</p>
-              <p className="mt-1 text-sm text-white">{clientName}</p>
-              <p className="text-sm text-text-secondary">{clientEmail}</p>
-            </div>
-            <div className="sm:text-right">
-              <p className="text-xs uppercase tracking-wide text-text-muted">From</p>
-              <p className="mt-1 text-sm text-white">{site.name}</p>
-              <p className="text-sm text-text-secondary">{site.address.full}</p>
-            </div>
+          <div className="no-print flex justify-end">
+            <DownloadReceiptButton targetId={`receipt-${order.id}`} />
           </div>
-
-          <dl className="space-y-1.5 border-t border-white/10 pt-4 text-sm">
-            <div className="flex items-center justify-between gap-4">
-              <dt className="text-text-muted">Invoice #</dt>
-              <dd className="truncate font-mono text-white">{order.receipt}</dd>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <dt className="text-text-muted">Payment ID</dt>
-              <dd className="truncate font-mono text-white">{order.razorpay_payment_id ?? "—"}</dd>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <dt className="text-text-muted">Date paid</dt>
-              <dd className="text-white">{order.paid_at ? new Date(order.paid_at).toLocaleString("en-IN") : "—"}</dd>
-            </div>
-          </dl>
-
-          <div className="flex items-center justify-between border-t border-white/10 pt-4">
-            <span className="font-display text-base font-semibold text-white">Total Paid</span>
-            <span className="font-display text-lg font-semibold text-cyan">{formatPaise(order.amount_paise)}</span>
+          <div id={`receipt-${order.id}`} className="receipt-print-candidate -mx-6 -mb-6 rounded-b-2xl">
+            <Receipt data={receiptData} />
           </div>
-
-          <p className="text-xs text-text-muted">A formal invoice template is coming soon — this is a summary of your payment.</p>
         </div>
       )}
     </GlassCard>

@@ -19,10 +19,12 @@ export default async function PaymentsPage() {
   const [{ data: orders }, { data: profile }] = await Promise.all([
     supabase
       .from("orders")
-      .select("id, description, amount_paise, status, created_at, paid_at, razorpay_order_id, razorpay_payment_id, receipt")
+      .select(
+        "id, description, amount_paise, status, created_at, paid_at, razorpay_order_id, razorpay_payment_id, receipt, line_items"
+      )
       .eq("client_id", user!.id)
       .order("created_at", { ascending: false }),
-    supabase.from("profiles").select("full_name").eq("id", user!.id).single(),
+    supabase.from("profiles").select("full_name, company_name, phone").eq("id", user!.id).single(),
   ]);
 
   return (
@@ -44,8 +46,12 @@ export default async function PaymentsPage() {
                 <InvoiceCard
                   key={order.id}
                   order={order}
-                  clientName={profile?.full_name || "there"}
-                  clientEmail={user?.email ?? ""}
+                  client={{
+                    name: profile?.full_name || "there",
+                    company: profile?.company_name,
+                    email: user?.email ?? "",
+                    phone: profile?.phone,
+                  }}
                 />
               );
             }
