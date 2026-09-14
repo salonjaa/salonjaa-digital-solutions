@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { site } from "@/content/site";
 
 export type ReceiptLineItem = { label: string; amountPaise: number };
@@ -69,7 +68,17 @@ export function Receipt({ data }: { data: ReceiptData }) {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-6 border-b-2 border-[#0f2942]/10 pb-6">
         <div className="flex items-center gap-3">
-          <Image src="/images/logo-mark.png" alt="" width={56} height={66} />
+          {/*
+            Plain <img>, not next/image, deliberately: this element is
+            always rendered off-screen (see InvoiceCard) for html2canvas to
+            capture, and next/image's lazy-loading (IntersectionObserver-
+            based) may never fire for an element that's never scrolled into
+            view, and its optimizer endpoint (/_next/image?url=...) has
+            caused tainted-canvas SecurityErrors on toDataURL() in the
+            past. A plain, eagerly-loaded, same-path <img> sidesteps both.
+          */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/logo-mark.png" alt="" width={56} height={66} loading="eager" />
           <div className="leading-tight">
             <p className="font-display text-2xl font-bold text-[#0f2942]">salonjaa</p>
             <p className="text-sm font-medium tracking-wide text-[#14919b]">digital solutions</p>

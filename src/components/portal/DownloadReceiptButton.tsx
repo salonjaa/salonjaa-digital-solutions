@@ -28,12 +28,18 @@ export function DownloadReceiptButton({
   className?: string;
 }) {
   const [status, setStatus] = useState<"idle" | "pending" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function handleClick() {
     const node = document.getElementById(targetId);
-    if (!node) return;
+    if (!node) {
+      setStatus("error");
+      setErrorMessage(`Could not find the receipt content (id="${targetId}").`);
+      return;
+    }
 
     setStatus("pending");
+    setErrorMessage(null);
     try {
       const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
 
@@ -49,21 +55,29 @@ export function DownloadReceiptButton({
     } catch (err) {
       console.error("Failed to generate receipt PDF", err);
       setStatus("error");
+      setErrorMessage(err instanceof Error ? err.message : String(err));
     }
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      disabled={status === "pending"}
-      data-cursor-hover
-      className={
-        className ??
-        "inline-flex items-center gap-2 rounded-full bg-cyan px-4 py-2 text-sm font-semibold text-[#0f2942] transition-opacity hover:opacity-90 disabled:opacity-60"
-      }
-    >
-      {status === "pending" ? "Preparing…" : status === "error" ? "Failed — retry" : "Download Receipt"}
-    </button>
+    <div className="inline-flex flex-col items-start gap-1.5">
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={status === "pending"}
+        data-cursor-hover
+        className={
+          className ??
+          "inline-flex items-center gap-2 rounded-full bg-cyan px-4 py-2 text-sm font-semibold text-[#0f2942] transition-opacity hover:opacity-90 disabled:opacity-60"
+        }
+      >
+        {status === "pending" ? "Preparing…" : status === "error" ? "Failed — retry" : "Download Receipt"}
+      </button>
+      {status === "error" && errorMessage && (
+        <p className="max-w-xs text-xs text-red-400" role="alert">
+          {errorMessage}
+        </p>
+      )}
+    </div>
   );
 }
