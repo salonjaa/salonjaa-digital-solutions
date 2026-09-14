@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 /**
- * Generates a real PDF client-side (html2canvas snapshots the receipt DOM
- * node, jsPDF wraps that image in a PDF sized to match) and saves it
+ * Generates a real PDF client-side (html2canvas-pro snapshots the receipt
+ * DOM node, jsPDF wraps that image in a PDF sized to match) and saves it
  * directly — no browser print dialog / print-preview step, unlike the
  * earlier window.print() approach. That approach also had a real bug: the
  * print CSS's `position: absolute` couldn't escape an `overflow-hidden`
@@ -12,8 +12,16 @@ import { useState } from "react";
  * to a canvas and embedding that as one image sidesteps the whole class of
  * "did CSS visibility/print rules actually apply" problems.
  *
- * jspdf/html2canvas are dynamically imported so their bundle weight only
- * loads if someone actually clicks Download, not on every page view.
+ * html2canvas-pro, not plain html2canvas: the original throws on modern
+ * CSS color functions (oklch()/lab()), which Tailwind v4's built-in
+ * palette generates throughout this app's stylesheet — not just the
+ * receipt's own classes, since html2canvas parses the whole applicable
+ * CSSOM. This fork adds support for those; found via the exact error
+ * (`Attempting to parse an unsupported color function "lab"`) surfaced by
+ * this button's own error display below.
+ *
+ * jspdf/html2canvas-pro are dynamically imported so their bundle weight
+ * only loads if someone actually clicks Download, not on every page view.
  *
  * `targetId` must be the id of the (already-rendered, even if visually
  * off-screen) element to capture — see InvoiceCard's off-screen Receipt.
@@ -41,7 +49,13 @@ export function DownloadReceiptButton({
     setStatus("pending");
     setErrorMessage(null);
     try {
-      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
+      // html2canvas-pro, not html2canvas — the original can't parse modern
+      // CSS color functions (oklch()/lab()), which Tailwind v4's built-in
+      // palette generates throughout this app's stylesheet (not just the
+      // receipt's own classes — html2canvas processes the whole applicable
+      // CSSOM, not just the captured node's rules). This fork adds support
+      // for exactly that; same API otherwise.
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import("html2canvas-pro"), import("jspdf")]);
 
       const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
       const imageData = canvas.toDataURL("image/png");
