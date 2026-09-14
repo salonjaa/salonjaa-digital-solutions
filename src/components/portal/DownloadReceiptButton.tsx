@@ -60,10 +60,53 @@ export function DownloadReceiptButton({
       const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
       const imageData = canvas.toDataURL("image/png");
 
-      // Page sized to exactly match the captured content — one receipt,
-      // one page, no scaling/cropping math against a fixed paper size.
-      const pdf = new jsPDF({ unit: "px", format: [canvas.width, canvas.height] });
-      pdf.addImage(imageData, "PNG", 0, 0, canvas.width, canvas.height);
+      // A real A4 page, not a custom page sized to the exact pixel
+      // dimensions of the capture — that earlier approach produced a
+      // non-standard page with the image stretched edge-to-edge (no
+      // margin, wrong proportions). This fits the image within A4 minus a
+      // fixed margin, preserving its aspect ratio, and centers it — if the
+      // receipt is taller than one page's content area, it spans
+      // additional A4 pages rather than being squashed to fit.
+      const pdf = new jsPDF({ unit: "mm", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 12;
+      const maxWidth = pageWidth - margin * 2;
+      const maxHeight = pageHeight - margin * 2;
+
+      const aspectRatio = canvas.width / canvas.height;
+      const renderWidth = maxWidth;
+      const renderHeight = renderWidth / aspectRatio;
+      const x = margin;
+
+      if (renderHeight <= maxHeight) {
+        // Fits on one page — center it vertically within the margin area.
+        const y = margin + (maxHeight - renderHeight) / 2;
+        pdf.addImage(imageData, "PNG", x, y, renderWidth, renderHeight);
+      } else {
+        // Taller than one page: slice the source canvas into page-height
+        // chunks (in source pixels) and add one PDF page per chunk.
+        const pxPerMm = canvas.width / renderWidth;
+        const pageContentPx = Math.floor(maxHeight * pxPerMm);
+        let renderedPx = 0;
+        let firstPage = true;
+
+        while (renderedPx < canvas.height) {
+          const sliceHeightPx = Math.min(pageContentPx, canvas.height - renderedPx);
+          const sliceCanvas = document.createElement("canvas");
+          sliceCanvas.width = canvas.width;
+          sliceCanvas.height = sliceHeightPx;
+          const ctx = sliceCanvas.getContext("2d");
+          ctx?.drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+
+          if (!firstPage) pdf.addPage();
+          pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", x, margin, renderWidth, sliceHeightPx / pxPerMm);
+
+          renderedPx += sliceHeightPx;
+          firstPage = false;
+        }
+      }
+
       pdf.save(`${fileName}.pdf`);
       setStatus("idle");
     } catch (err) {
