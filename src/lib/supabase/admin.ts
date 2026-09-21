@@ -4,7 +4,7 @@ import type { Database } from "./types";
 
 // Bypasses Row Level Security entirely — reserved for the handful of
 // operations no ordinary logged-in session could ever legitimately do:
-// creating a client's Auth login (admin provisioning) and processing the
+// creating or re-emailing a client's Auth login (admin provisioning) and processing the
 // Razorpay webhook (no user session exists there at all). Every other
 // server-side read/write — including the admin panel's own — should go
 // through src/lib/supabase/server.ts instead, so RLS stays the single,

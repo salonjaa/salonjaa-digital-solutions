@@ -64,7 +64,6 @@ export const createClientSchema = z.object({
   email: z.string().min(1, "Email is required").email("Enter a valid email"),
   phone: z.string().max(20).optional().or(z.literal("")),
   companyName: z.string().max(120).optional().or(z.literal("")),
-  password: z.string().min(8, "At least 8 characters").max(72),
   planKey: z.string().max(40).optional().or(z.literal("")),
   planName: z.string().max(120).optional().or(z.literal("")),
   planPricePaise: z.number().int().min(0).optional(),
@@ -80,6 +79,7 @@ export type NotifyPaymentPayload = z.infer<typeof notifyPaymentSchema>;
 
 export const updateClientSchema = z.object({
   fullName: z.string().min(1, "Name is required").max(120),
+  email: z.string().trim().min(1, "Email is required").email("Enter a valid email"),
   phone: z.string().max(20).optional().or(z.literal("")),
   companyName: z.string().max(120).optional().or(z.literal("")),
 });

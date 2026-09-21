@@ -8,7 +8,7 @@ export default function NewClientPage() {
       <div>
         <h1 className="font-display text-2xl font-semibold text-white">New Client</h1>
         <p className="mt-1 text-sm text-text-secondary">
-          Creates their login and, optionally, an initial plan. A welcome email with their password is sent
+          Creates their login and, optionally, an initial plan. A welcome email with a generated password is sent
           automatically.
         </p>
       </div>

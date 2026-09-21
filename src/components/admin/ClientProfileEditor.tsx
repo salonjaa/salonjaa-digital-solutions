@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
+import { IndianPhoneInput } from "@/components/forms/IndianPhoneInput";
 import { PencilIcon } from "@/components/icons/AdminIcons";
 
 const inputClasses =
@@ -30,7 +31,7 @@ export function ClientProfileEditor({ client }: { client: Client }) {
       const res = await fetch(`/api/admin/clients/${client.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName: data.fullName, phone: data.phone, companyName: data.companyName }),
+        body: JSON.stringify({ fullName: data.fullName, email: data.email, phone: data.phone, companyName: data.companyName }),
       });
       const json = await res.json();
       if (!res.ok || !json.ok) {
@@ -56,12 +57,25 @@ export function ClientProfileEditor({ client }: { client: Client }) {
             </label>
             <input id="edit-fullName" name="fullName" defaultValue={client.full_name ?? ""} required className={inputClasses} />
           </div>
+          <div>
+            <label htmlFor="edit-email" className="mb-1 block text-xs font-medium text-text-secondary">
+              Email (also the client&apos;s login)
+            </label>
+            <input
+              id="edit-email"
+              name="email"
+              type="email"
+              defaultValue={client.email ?? ""}
+              required
+              className={inputClasses}
+            />
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label htmlFor="edit-phone" className="mb-1 block text-xs font-medium text-text-secondary">
                 Phone
               </label>
-              <input id="edit-phone" name="phone" defaultValue={client.phone ?? ""} className={inputClasses} />
+              <IndianPhoneInput id="edit-phone" name="phone" defaultValue={client.phone} size="sm" />
             </div>
             <div>
               <label htmlFor="edit-company" className="mb-1 block text-xs font-medium text-text-secondary">

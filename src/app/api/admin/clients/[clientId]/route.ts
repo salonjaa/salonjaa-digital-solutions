@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabase/server";
+import { getAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/adminAuth";
 import { updateClientSchema } from "@/lib/validation";
 import { checkRateLimit } from "@/lib/rateLimit";
 
-/** Edits a client's profile fields — name, phone, company. */
+/** Edits a client's profile fields — name, email, phone, company. */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ clientId: string }> }) {
   const { clientId } = await params;
   const supabase = await getServerClient();
@@ -30,10 +31,32 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ cl
     );
   }
 
+  const email = parsed.data.email.toLowerCase();
+
+  const { data: existing } = await supabase.from("profiles").select("email").eq("id", clientId).single();
+
+  // The login email lives in auth.users (profiles.email is only a copy, with
+  // no sync trigger), so a change has to go through the service-role client
+  // first — otherwise the client would keep logging in with the old address.
+  if (existing && existing.email?.toLowerCase() !== email) {
+    const { error: authError } = await getAdminClient().auth.admin.updateUserById(clientId, {
+      email,
+      email_confirm: true,
+    });
+    if (authError) {
+      console.error("Failed to update client auth email", authError);
+      return NextResponse.json(
+        { ok: false, error: authError.status === 422 ? "That email is already in use." : "Failed to update email." },
+        { status: authError.status === 422 ? 409 : 500 }
+      );
+    }
+  }
+
   const { error } = await supabase
     .from("profiles")
     .update({
       full_name: parsed.data.fullName,
+      email,
       phone: parsed.data.phone || null,
       company_name: parsed.data.companyName || null,
     })

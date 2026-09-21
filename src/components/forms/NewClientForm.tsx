@@ -6,20 +6,13 @@ import { plans } from "@/content/plans";
 import { parsePriceToPaise } from "@/lib/money";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GradientButton } from "@/components/ui/GradientButton";
+import { IndianPhoneInput } from "@/components/forms/IndianPhoneInput";
+import { CloseIcon } from "@/components/icons/AdminIcons";
 
 const inputClasses =
   "w-full rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-white outline-none transition-colors focus:border-cyan placeholder:text-text-muted";
 
-function generatePassword() {
-  // Random, pronounceable-ish and copy-pasteable — not meant to be typed by
-  // hand, the admin sends it to the client via WhatsApp/email.
-  const bytes = new Uint8Array(9);
-  crypto.getRandomValues(bytes);
-  return btoa(String.fromCharCode(...bytes)).replace(/[+/=]/g, "").slice(0, 12);
-}
-
 export function NewClientForm() {
-  const [password, setPassword] = useState(generatePassword);
   const [planKey, setPlanKey] = useState("");
   const [status, setStatus] = useState<"idle" | "pending" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +36,6 @@ export function NewClientForm() {
           email: data.email,
           phone: data.phone,
           companyName: data.companyName,
-          password,
           planKey: selectedTier?.tag ?? "",
           planName: selectedTier?.name ?? "",
           planPricePaise: selectedTier ? parsePriceToPaise(selectedTier.price) : undefined,
@@ -69,8 +61,8 @@ export function NewClientForm() {
         <p className="text-sm text-emerald">Client account created.</p>
         <p className="text-sm text-text-secondary">
           {created.emailSent
-            ? "Their login (email + password) was emailed to them automatically."
-            : "The welcome email failed to send — use \"Reset Password\" on their profile to generate and resend it."}
+            ? "Their login details (email + a generated password) were emailed to them automatically."
+            : "The welcome email failed to send — ask them to use \"Forgot password\" on the login page to set their own password."}
         </p>
         <Link href={`/admin/clients/${created.clientId}`} data-cursor-hover className="inline-block">
           <GradientButton>Go to client</GradientButton>
@@ -80,7 +72,15 @@ export function NewClientForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card-glass space-y-4 p-6 sm:p-8">
+    <form onSubmit={handleSubmit} className="card-glass relative space-y-4 p-6 sm:p-8">
+      <Link
+        href="/admin/clients"
+        aria-label="Close"
+        data-cursor-hover
+        className="absolute right-4 top-4 rounded-lg p-1.5 text-text-muted transition-colors hover:bg-white/5 hover:text-white"
+      >
+        <CloseIcon className="h-5 w-5" />
+      </Link>
       <div>
         <label htmlFor="client-name" className="mb-1.5 block text-sm font-medium text-white">
           Full name
@@ -98,7 +98,7 @@ export function NewClientForm() {
           <label htmlFor="client-phone" className="mb-1.5 block text-sm font-medium text-white">
             Phone / WhatsApp <span className="text-text-muted">(optional)</span>
           </label>
-          <input id="client-phone" name="phone" type="tel" placeholder="+91 90000 00000" className={inputClasses} />
+          <IndianPhoneInput id="client-phone" name="phone" />
         </div>
       </div>
       <div>
@@ -124,34 +124,6 @@ export function NewClientForm() {
             </option>
           ))}
         </select>
-      </div>
-      <div>
-        <label htmlFor="client-password" className="mb-1.5 block text-sm font-medium text-white">
-          Login password
-        </label>
-        <div className="flex gap-2">
-          <input
-            id="client-password"
-            name="password"
-            type="text"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-            className={inputClasses}
-          />
-          <button
-            type="button"
-            onClick={() => setPassword(generatePassword())}
-            data-cursor-hover
-            className="shrink-0 rounded-lg border border-white/15 px-3 text-xs font-medium text-text-secondary transition-colors hover:border-cyan/50 hover:text-white"
-          >
-            Regenerate
-          </button>
-        </div>
-        <p className="mt-1.5 text-xs text-text-muted">
-          This will be emailed to the client automatically once the account is created.
-        </p>
       </div>
       {status === "error" && error && (
         <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-400">

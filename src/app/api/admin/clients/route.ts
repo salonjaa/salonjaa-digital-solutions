@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
@@ -7,8 +8,8 @@ import { sendWelcomeEmail } from "@/lib/resend";
 import { site } from "@/content/site";
 
 /**
- * Admin provisions a client's login (email + admin-set password — no
- * self-serve signup) and, optionally, their initial plan in the same call.
+ * Admin provisions a client's login (email + server-generated password
+ * emailed to them — no self-serve signup) and, optionally, their initial plan in the same call.
  * User creation itself has to go through the service-role client (no other
  * way to create a Supabase Auth user server-side); everything else uses the
  * calling admin's own RLS-scoped session, same as every other admin write
@@ -48,7 +49,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { fullName, email, phone, companyName, password, planKey, planName, planPricePaise } = parsed.data;
+  const { fullName, email, phone, companyName, planKey, planName, planPricePaise } = parsed.data;
+
+  // Generated here, never sent to or shown in the admin UI — the only place
+  // it's ever seen is the client's welcome email.
+  const password = randomBytes(9).toString("base64url");
 
   const { data: created, error: createError } = await getAdminClient().auth.admin.createUser({
     email,
@@ -96,8 +101,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Best-effort — a failed welcome email shouldn't undo a successfully
-  // created account. Admin still sees the password in the form either way
-  // and can resend it later via the reset-password action.
+  // created account. The client can always use "Forgot password" on /login.
   let emailSent = true;
   try {
     await sendWelcomeEmail({
