@@ -4,6 +4,8 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { GradientButton } from "@/components/ui/GradientButton";
 import { StatusBadge, orderStatusTone } from "@/components/ui/StatusBadge";
 import { ClientProfileEditor } from "@/components/admin/ClientProfileEditor";
+import { DeleteClientButton } from "@/components/admin/DeleteClientButton";
+import { clientConfirmName } from "@/lib/clientName";
 import { PlanManager } from "@/components/admin/PlanManager";
 import { DomainManager } from "@/components/admin/DomainManager";
 import { formatPaise } from "@/lib/money";
@@ -67,6 +69,8 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
           )}
         </GlassCard>
       </div>
+
+      <DeleteClientButton clientId={clientId} confirmName={clientConfirmName(client)} />
 
       {/*
         client_assets (files/credentials/notes/links) has no admin UI yet —

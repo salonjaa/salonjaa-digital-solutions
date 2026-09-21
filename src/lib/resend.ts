@@ -75,6 +75,32 @@ export async function sendWelcomeEmail(params: { to: string; clientName: string;
   return result;
 }
 
+export async function sendLoginUpdatedEmail(params: { to: string; clientName: string; password: string; loginUrl: string }) {
+  const { data: result, error } = await getClient().emails.send({
+    from: fromAddress(),
+    to: params.to,
+    subject: "Your Salonjaa Digital Solutions login has been updated",
+    text: `Hi ${params.clientName},
+
+The email on your account has been updated, and a new password was generated. From now on, log in with:
+
+${params.loginUrl}
+
+Email: ${params.to}
+Password: ${params.password}
+
+Your previous password no longer works. You can change this password anytime using "Forgot password" on the login page.
+
+— Salonjaa Digital Solutions`,
+  });
+
+  if (error) {
+    throw new Error(`Resend API error: ${error.name} — ${error.message}`);
+  }
+
+  return result;
+}
+
 export async function sendPaymentRequestEmail(params: {
   to: string;
   clientName: string;

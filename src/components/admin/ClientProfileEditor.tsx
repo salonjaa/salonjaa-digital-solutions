@@ -20,11 +20,13 @@ export function ClientProfileEditor({ client }: { client: Client }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   async function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
     setError(null);
+    setNotice(null);
     const data = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
 
     try {
@@ -37,6 +39,13 @@ export function ClientProfileEditor({ client }: { client: Client }) {
       if (!res.ok || !json.ok) {
         setError(json.error ?? "Failed to save changes.");
         return;
+      }
+      if (json.emailChanged) {
+        setNotice(
+          json.emailSent
+            ? "Email updated — a new password was generated and sent to the new address."
+            : "Email updated, but the email with the new password failed to send. Ask the client to use \"Forgot password\" on the login page."
+        );
       }
       setEditing(false);
       router.refresh();
@@ -84,6 +93,9 @@ export function ClientProfileEditor({ client }: { client: Client }) {
               <input id="edit-company" name="companyName" defaultValue={client.company_name ?? ""} className={inputClasses} />
             </div>
           </div>
+          <p className="text-xs text-text-muted">
+            Changing the email also generates a new password, which is emailed to the new address.
+          </p>
           {error && <p className="text-sm text-red-400">{error}</p>}
           <div className="flex gap-2">
             <Button type="submit" size="md" disabled={saving}>
@@ -107,6 +119,7 @@ export function ClientProfileEditor({ client }: { client: Client }) {
         <p className="mt-1 text-sm text-text-secondary">
           {[client.email, client.phone].filter(Boolean).join(" · ") || "No contact details on file"}
         </p>
+        {notice && <p className="mt-2 text-sm text-emerald">{notice}</p>}
         {error && !editing && <p className="mt-2 text-sm text-red-400">{error}</p>}
       </div>
       <Button variant="outline" size="md" onClick={() => setEditing(true)}>

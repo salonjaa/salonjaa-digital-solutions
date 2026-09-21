@@ -86,6 +86,10 @@ export const updateClientSchema = z.object({
 
 export type UpdateClientPayload = z.infer<typeof updateClientSchema>;
 
+export const deleteClientSchema = z.object({
+  confirmName: z.string().min(1, "Type the client's name to confirm."),
+});
+
 export const assignPlanSchema = z.object({
   planKey: z.string().min(1, "Plan is required").max(40),
   planName: z.string().min(1).max(120),

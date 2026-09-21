@@ -1,8 +1,8 @@
-import { randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { createClientSchema } from "@/lib/validation";
+import { generatePassword } from "@/lib/password";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { sendWelcomeEmail } from "@/lib/resend";
 import { site } from "@/content/site";
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
   // Generated here, never sent to or shown in the admin UI — the only place
   // it's ever seen is the client's welcome email.
-  const password = randomBytes(9).toString("base64url");
+  const password = generatePassword();
 
   const { data: created, error: createError } = await getAdminClient().auth.admin.createUser({
     email,
