@@ -1,14 +1,12 @@
 import { notFound } from "next/navigation";
 import { getServerClient } from "@/lib/supabase/server";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { GradientButton } from "@/components/ui/GradientButton";
-import { StatusBadge, orderStatusTone } from "@/components/ui/StatusBadge";
 import { ClientProfileEditor } from "@/components/admin/ClientProfileEditor";
 import { DeleteClientButton } from "@/components/admin/DeleteClientButton";
 import { clientConfirmName } from "@/lib/clientName";
 import { PlanManager } from "@/components/admin/PlanManager";
 import { DomainManager } from "@/components/admin/DomainManager";
-import { formatPaise } from "@/lib/money";
+import { PaymentsManager } from "@/components/admin/PaymentsManager";
 
 export const metadata = { title: "Client — Admin" };
 
@@ -37,7 +35,7 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
       .order("domain_name", { ascending: true }),
     supabase
       .from("orders")
-      .select("id, description, amount_paise, status, created_at")
+      .select("id, description, amount_paise, status, created_at, paid_at, receipt, razorpay_order_id, razorpay_payment_id")
       .eq("client_id", clientId)
       .order("created_at", { ascending: false })
       .limit(5),
@@ -53,21 +51,7 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
         <PlanManager clientId={clientId} plans={plans ?? []} />
         <DomainManager clientId={clientId} domains={domains ?? []} />
 
-        <GlassCard hover={false}>
-          <p className="text-xs uppercase tracking-wide text-text-muted">Recent Orders</p>
-          {orders && orders.length > 0 ? (
-            <ul className="mt-2 space-y-2">
-              {orders.map((order) => (
-                <li key={order.id} className="flex items-center justify-between gap-2 text-sm">
-                  <span className="text-white">{formatPaise(order.amount_paise)}</span>
-                  <StatusBadge label={order.status} tone={orderStatusTone[order.status]} />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-2 text-sm text-text-secondary">No payment requests yet.</p>
-          )}
-        </GlassCard>
+        <PaymentsManager clientId={clientId} orders={orders ?? []} />
       </div>
 
       <DeleteClientButton clientId={clientId} confirmName={clientConfirmName(client)} />

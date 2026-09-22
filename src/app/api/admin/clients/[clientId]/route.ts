@@ -101,11 +101,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ cl
 
 /**
  * Permanently deletes a client. Deleting the Auth user cascades to their
- * profile, plans, domains, assets and chat threads — but not to `orders`
- * (payment records, deliberately no cascade) or to messages they sent, so
- * those are handled explicitly: a client with any payment request is refused,
- * and their chat threads are removed first so the message FK doesn't block.
- * The confirmation name is re-checked here, not just in the modal.
+ * profile, plans, domains and assets — but not to `orders` (no cascade,
+ * deliberately) or to messages they sent, so those are handled explicitly:
+ * a client with any *paid* order is refused outright (that's a real revenue
+ * record, kept forever), while any non-paid orders (created/attempted/
+ * failed/cancelled — see PaymentsManager's soft-cancel) are removed here so
+ * the FK doesn't block the account delete; their chat threads are removed
+ * first so the message FK doesn't block either. The confirmation name is
+ * re-checked here, not just in the modal.
  */
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ clientId: string }> }) {
   const { clientId } = await params;
@@ -149,24 +152,34 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ c
 
   const admin = getAdminClient();
 
-  const { count: orderCount, error: orderError } = await admin
+  const { count: paidOrderCount, error: orderError } = await admin
     .from("orders")
     .select("id", { count: "exact", head: true })
-    .eq("client_id", clientId);
+    .eq("client_id", clientId)
+    .eq("status", "paid");
 
   if (orderError) {
     console.error("Failed to check client orders before delete", orderError);
     return NextResponse.json({ ok: false, error: "Failed to delete client." }, { status: 500 });
   }
-  if (orderCount && orderCount > 0) {
+  if (paidOrderCount && paidOrderCount > 0) {
     return NextResponse.json(
       {
         ok: false,
-        error:
-          "This client has payment requests on record, which can't be deleted along with the account. Their payment history has to be cleared first.",
+        error: "This client has paid payment records on file, which can't be deleted along with the account.",
       },
       { status: 409 }
     );
+  }
+
+  // Any remaining orders here are non-paid (created/attempted/failed/
+  // cancelled) — no revenue record, safe to remove along with the account.
+  // The .neq guard is a last-ditch safety net against a payment landing in
+  // the gap between the check above and this delete.
+  const { error: nonPaidOrderError } = await admin.from("orders").delete().eq("client_id", clientId).neq("status", "paid");
+  if (nonPaidOrderError) {
+    console.error("Failed to delete client's non-paid orders", nonPaidOrderError);
+    return NextResponse.json({ ok: false, error: "Failed to delete client." }, { status: 500 });
   }
 
   const { error: threadError } = await admin.from("chat_threads").delete().eq("client_id", clientId);
