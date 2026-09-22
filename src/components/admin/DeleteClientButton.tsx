@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { Modal } from "@/components/ui/Modal";
 import { CloseIcon } from "@/components/icons/AdminIcons";
 
 /**
@@ -23,19 +24,6 @@ export function DeleteClientButton({ clientId, confirmName }: { clientId: string
     setTyped("");
     setError(null);
   }
-
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && !deleting) {
-        setOpen(false);
-        setTyped("");
-        setError(null);
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, deleting]);
 
   async function handleDelete() {
     setDeleting(true);
@@ -84,54 +72,46 @@ export function DeleteClientButton({ clientId, confirmName }: { clientId: string
       </GlassCard>
 
       {open && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4" onClick={close}>
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="delete-client-title"
-            onClick={(e) => e.stopPropagation()}
-            className="card-glass relative w-full max-w-md space-y-4 bg-surface p-6"
+        <Modal onClose={close} labelledBy="delete-client-title" disableClose={deleting}>
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Close"
+            data-cursor-hover
+            className="absolute right-4 top-4 rounded-lg p-1.5 text-text-muted transition-colors hover:bg-white/5 hover:text-white"
           >
-            <button
-              type="button"
-              onClick={close}
-              aria-label="Close"
-              data-cursor-hover
-              className="absolute right-4 top-4 rounded-lg p-1.5 text-text-muted transition-colors hover:bg-white/5 hover:text-white"
-            >
-              <CloseIcon className="h-5 w-5" />
-            </button>
-            <h2 id="delete-client-title" className="pr-8 font-display text-lg font-semibold text-white">
-              Are you absolutely sure?
-            </h2>
-            <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
-              This action cannot be undone. It permanently deletes this client&apos;s login, plans, domains and
-              chat history.
-            </p>
-            <div>
-              <label htmlFor="delete-confirm" className="mb-1.5 block text-sm text-text-secondary">
-                Please type <span className="select-all font-semibold text-white">{confirmName}</span> to confirm.
-              </label>
-              <input
-                id="delete-confirm"
-                value={typed}
-                onChange={(e) => setTyped(e.target.value)}
-                autoComplete="off"
-                autoFocus
-                className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white outline-none transition-colors focus:border-red-400"
-              />
-            </div>
-            {error && <p className="text-sm text-red-400">{error}</p>}
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={!matches || deleting}
-              className="w-full rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {deleting ? "Deleting…" : "I understand, delete this client"}
-            </button>
+            <CloseIcon className="h-5 w-5" />
+          </button>
+          <h2 id="delete-client-title" className="pr-8 font-display text-lg font-semibold text-white">
+            Are you absolutely sure?
+          </h2>
+          <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+            This action cannot be undone. It permanently deletes this client&apos;s login, plans, domains and
+            chat history.
+          </p>
+          <div>
+            <label htmlFor="delete-confirm" className="mb-1.5 block text-sm text-text-secondary">
+              Please type <span className="select-all font-semibold text-white">{confirmName}</span> to confirm.
+            </label>
+            <input
+              id="delete-confirm"
+              value={typed}
+              onChange={(e) => setTyped(e.target.value)}
+              autoComplete="off"
+              autoFocus
+              className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white outline-none transition-colors focus:border-red-400"
+            />
           </div>
-        </div>
+          {error && <p className="text-sm text-red-400">{error}</p>}
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={!matches || deleting}
+            className="w-full rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {deleting ? "Deleting…" : "I understand, delete this client"}
+          </button>
+        </Modal>
       )}
     </>
   );

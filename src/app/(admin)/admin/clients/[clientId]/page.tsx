@@ -35,7 +35,9 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
       .order("domain_name", { ascending: true }),
     supabase
       .from("orders")
-      .select("id, description, amount_paise, status, created_at, paid_at, receipt, razorpay_order_id, razorpay_payment_id")
+      .select(
+        "id, description, amount_paise, status, created_at, paid_at, receipt, razorpay_order_id, razorpay_payment_id, line_items"
+      )
       .eq("client_id", clientId)
       .order("created_at", { ascending: false })
       .limit(5),
@@ -51,7 +53,16 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
         <PlanManager clientId={clientId} plans={plans ?? []} />
         <DomainManager clientId={clientId} domains={domains ?? []} />
 
-        <PaymentsManager clientId={clientId} orders={orders ?? []} />
+        <PaymentsManager
+          clientId={clientId}
+          client={{
+            name: client.full_name || "there",
+            company: client.company_name,
+            email: client.email ?? "",
+            phone: client.phone,
+          }}
+          orders={orders ?? []}
+        />
       </div>
 
       <DeleteClientButton clientId={clientId} confirmName={clientConfirmName(client)} />

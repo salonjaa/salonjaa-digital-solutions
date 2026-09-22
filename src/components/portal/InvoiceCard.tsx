@@ -3,6 +3,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Receipt, type ReceiptData } from "@/components/portal/Receipt";
 import { DownloadReceiptButton } from "@/components/portal/DownloadReceiptButton";
 import { formatPaise } from "@/lib/money";
+import { toLineItems } from "@/lib/receipt";
 import type { Json } from "@/lib/supabase/types";
 
 type PaidOrder = {
@@ -14,24 +15,6 @@ type PaidOrder = {
   receipt: string;
   line_items: Json;
 };
-
-function toLineItems(order: PaidOrder): ReceiptData["lineItems"] {
-  if (Array.isArray(order.line_items) && order.line_items.length > 0) {
-    const items = order.line_items
-      .map((raw) => {
-        if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-        const label = "label" in raw && typeof raw.label === "string" ? raw.label : null;
-        const amount = "amount_paise" in raw && typeof raw.amount_paise === "number" ? raw.amount_paise : null;
-        return label && amount !== null ? { label, amountPaise: amount } : null;
-      })
-      .filter((item): item is { label: string; amountPaise: number } => item !== null);
-    if (items.length > 0) return items;
-  }
-  // No itemized breakdown on file (the common case today — payment
-  // requests aren't itemized yet) — fall back to a single line so the
-  // receipt's total always matches amount_paise exactly.
-  return [{ label: order.description, amountPaise: order.amount_paise }];
-}
 
 /**
  * A paid order — a compact summary row with a Download Receipt button.
@@ -52,7 +35,7 @@ export function InvoiceCard({
     paidAt: order.paid_at ?? new Date().toISOString(),
     paymentId: order.razorpay_payment_id,
     client,
-    lineItems: toLineItems(order),
+    lineItems: toLineItems(order.line_items, { label: order.description, amountPaise: order.amount_paise }),
     amountPaise: order.amount_paise,
   };
 
